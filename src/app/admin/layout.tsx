@@ -7,7 +7,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
   const user = await currentUser();
 
   if (!user) {
-    redirect('/sign-in?redirect_url=/admin');
+    redirect('/login?redirect_url=/admin');
   }
 
   if (user.publicMetadata?.role !== 'admin') {

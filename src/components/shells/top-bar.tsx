@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import { Logo } from '../logo';
 import { Icon } from '../icon';
-import { SignInButton, SignUpButton, UserButton, useAuth } from '@clerk/nextjs';
+import { SignInButton, SignUpButton, UserButton, useAuth, useClerk } from '@clerk/nextjs';
 
 const iconBtn: React.CSSProperties = {
   position: 'relative', width: 38, height: 38, borderRadius: 9, border: 'none',
@@ -32,6 +32,7 @@ interface TopBarProps {
 
 export function TopBar({ cartCount, wishCount }: TopBarProps) {
   const { isLoaded, isSignedIn } = useAuth();
+  const { signOut } = useClerk();
 
   return (
     <header style={{
@@ -67,8 +68,8 @@ export function TopBar({ cartCount, wishCount }: TopBarProps) {
         </Link>
         <button style={iconBtn}><Icon name="bell" size={20} /></button>
         <div style={{ paddingLeft: 14, borderLeft: '1px solid var(--line)', display: 'flex', alignItems: 'center', gap: 8, minHeight: 36 }}>
-          {isLoaded ? (
-            isSignedIn ? (
+          {isLoaded && isSignedIn ? (
+            <>
               <UserButton
                 appearance={{
                   elements: {
@@ -76,18 +77,19 @@ export function TopBar({ cartCount, wishCount }: TopBarProps) {
                   },
                 }}
               />
-            ) : (
-              <>
-                <SignInButton mode="modal" forceRedirectUrl="/account">
-                  <button id="clerk-sign-in-btn" style={authBtnStyle}>Sign In</button>
-                </SignInButton>
-                <SignUpButton mode="modal" forceRedirectUrl="/account">
-                  <button id="clerk-sign-up-btn" style={authBtnPrimaryStyle}>Sign Up</button>
-                </SignUpButton>
-              </>
-            )
+              <button onClick={() => signOut({ redirectUrl: '/shop' })} style={{ ...authBtnStyle, display: 'inline-flex', alignItems: 'center' }}>
+                <Icon name="logout" size={15} style={{ marginRight: 6 }} /> Logout
+              </button>
+            </>
           ) : (
-            <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--surface-2)' }} />
+            <>
+              <Link href="/login" style={{ ...authBtnStyle, textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>
+                <Icon name="user" size={15} style={{ marginRight: 6 }} /> Login
+              </Link>
+              <Link href="/login" style={{ ...authBtnPrimaryStyle, textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>
+                <Icon name="userPlus" size={15} style={{ marginRight: 6 }} /> Sign Up
+              </Link>
+            </>
           )}
         </div>
       </div>

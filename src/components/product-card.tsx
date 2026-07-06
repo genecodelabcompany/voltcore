@@ -29,7 +29,7 @@ export function ProductCard({ product: p }: ProductCardProps) {
     if (isSignedIn) {
       router.push('/checkout');
     } else {
-      router.push('/sign-in?redirect_url=/checkout');
+      router.push('/login?redirect_url=/checkout');
     }
   };
 
