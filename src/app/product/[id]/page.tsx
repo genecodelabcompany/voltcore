@@ -70,7 +70,7 @@ export default function ProductDetail({ params }: { params: { id: string } }) {
 
   return (
     <StoreShell>
-      <div style={{ maxWidth: 1100, margin: '0 auto', padding: '28px 24px' }}>
+      <div className="page-container" style={{ maxWidth: 1100 }}>
         {/* Breadcrumb */}
         <div className="row gap6 sub" style={{ fontSize: 13, marginBottom: 20 }}>
           <span style={{ cursor: 'pointer', color: 'var(--blue-600)' }} onClick={() => router.push('/shop')}>Shop</span>
@@ -81,7 +81,7 @@ export default function ProductDetail({ params }: { params: { id: string } }) {
         </div>
 
         {/* Main grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 40, marginBottom: 40 }}>
+        <div className="prod-detail-grid" style={{ marginBottom: 40 }}>
           {/* Product visual */}
           <div>
             <div className="card" style={{

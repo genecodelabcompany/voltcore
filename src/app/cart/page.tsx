@@ -29,7 +29,7 @@ export default function CartPage() {
 
   return (
     <StoreShell>
-      <div style={{ maxWidth: 1100, margin: '0 auto', padding: '28px 24px' }}>
+      <div className="page-container" style={{ maxWidth: 1100 }}>
         <h1 style={{ fontSize: 22, fontWeight: 900, marginBottom: 24 }}>
           Shopping Cart {cart.length > 0 && <span className="sub" style={{ fontSize: 16, fontWeight: 400 }}>({cart.length} item{cart.length !== 1 ? 's' : ''})</span>}
         </h1>
@@ -41,7 +41,7 @@ export default function CartPage() {
             <Link href="/shop" className="btn btn-primary">Browse Products</Link>
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 24, alignItems: 'flex-start' }}>
+          <div className="cart-layout" style={{ alignItems: 'flex-start' }}>
             <div className="card card-pad">
               {enriched.map((item, i) => {
                 const p = item.product!;

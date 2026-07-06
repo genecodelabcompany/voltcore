@@ -271,3 +271,848 @@ input, select, textarea { font-family: inherit; }
 }
 .cat-pill:hover { background: var(--blue-50); border-color: var(--blue-200); color: var(--blue-700); }
 .cat-pill.active { background: var(--blue-600); border-color: var(--blue-600); color: #fff; }
+
+/* ============================================================
+   Mobile Responsiveness
+   ============================================================ */
+
+/* ---------- TopBar ---------- */
+.topbar {
+  height: 72; background: #fff; border-bottom: 1px solid var(--line);
+  display: flex; align-items: center; gap: 20; padding: 0 28px;
+  position: sticky; top: 0; z-index: 30;
+}
+.topbar-cat-btn { height: 44; }
+.topbar-search { position: relative; max-width: 560; }
+.topbar-hamburger { display: none; height: 38; padding: 0 10px; }
+.topbar-icon-link { display: flex; flex-direction: column; align-items: center; gap: 2px; color: var(--ink-2); }
+.topbar-icon-label { font-size: 11px; font-weight: 600; }
+.topbar-icon-btn {
+  position: relative; width: 38; height: 38; border-radius: 9; border: none;
+  background: var(--surface-2); color: var(--ink-2);
+  display: flex; align-items: center; justify-content: center;
+}
+.topbar-auth {
+  padding-left: 14; border-left: 1px solid var(--line);
+  display: flex; align-items: center; gap: 8; min-height: 36;
+}
+.topbar-auth-btn {
+  height: 36; padding: 0 14px; border-radius: 8; border: 1px solid var(--line);
+  background: transparent; cursor: pointer; font-size: 13; font-weight: 600;
+  color: var(--ink-1); text-decoration: none; display: inline-flex; align-items: center;
+}
+.topbar-auth-btn-primary {
+  height: 36; padding: 0 14px; border-radius: 8; border: none;
+  background: var(--blue-600); cursor: pointer; font-size: 13; font-weight: 600;
+  color: #fff; text-decoration: none; display: inline-flex; align-items: center;
+}
+.topbar-mobile-menu {
+  position: fixed; top: 72; left: 0; right: 0; bottom: 0;
+  background: #fff; z-index: 40; padding: 16px; overflow-y: auto;
+}
+
+@media (max-width: 767px) {
+  .topbar { padding: 0 12px; gap: 8px; }
+  .topbar-cat-btn { display: none; }
+  .topbar-search { display: none; }
+  .topbar-hamburger { display: inline-flex; }
+  .topbar-icon-label { display: none; }
+  .topbar-icon-btn { display: none; }
+  .topbar-auth { padding-left: 0; border-left: none; }
+  .topbar-auth-btn span { display: none; }
+  .topbar-auth-btn-primary span { display: none; }
+}
+
+/* ---------- Admin Shell ---------- */
+.admin-shell { display: flex; min-height: 100vh; background: var(--bg); }
+.admin-sidebar {
+  width: 248; flex-shrink: 0; background: #fff; border-right: 1px solid var(--line);
+  display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; overflow: hidden;
+}
+.admin-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.admin-header {
+  height: 64; background: #fff; border-bottom: 1px solid var(--line);
+  display: flex; align-items: center; gap: 18; padding: 0 24px;
+  position: sticky; top: 0; z-index: 20;
+}
+.admin-content { padding: 28px 24px 40px; flex: 1; }
+.admin-footer {
+  padding: 16px 24px; border-top: 1px solid var(--line); background: #fff;
+  display: flex; justify-content: space-between; font-size: 12.5; color: var(--muted);
+}
+.admin-mobile-bar { display: none; }
+
+@media (max-width: 767px) {
+  .admin-sidebar { display: none; }
+  .admin-mobile-bar { display: flex; }
+  .admin-header { padding: 0 12px; gap: 10px; }
+  .admin-content { padding: 16px; }
+  .admin-footer { flex-direction: column; gap: 4px; text-align: center; }
+}
+
+/* ---------- Store Footer ---------- */
+.store-footer-grid {
+  max-width: 1480; margin: 0 auto; padding: 26px 28px;
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 24;
+}
+@media (max-width: 767px) {
+  .store-footer-grid { grid-template-columns: repeat(2, 1fr); gap: 16px; padding: 20px 16px; }
+}
+
+/* ---------- Product Detail Page ---------- */
+.prod-detail-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 32px;
+}
+@media (max-width: 767px) {
+  .prod-detail-grid { grid-template-columns: 1fr; gap: 20px; }
+}
+
+/* ---------- Cart Page ---------- */
+.cart-layout { display: grid; grid-template-columns: 1fr 360px; gap: 24px; }
+@media (max-width: 767px) {
+  .cart-layout { grid-template-columns: 1fr; gap: 16px; }
+}
+
+/* ---------- Checkout Page ---------- */
+.checkout-layout { display: grid; grid-template-columns: 1fr 400px; gap: 28px; }
+@media (max-width: 767px) {
+  .checkout-layout { grid-template-columns: 1fr; gap: 16px; }
+}
+
+/* ---------- Account Pages ---------- */
+.account-layout { display: grid; grid-template-columns: 220px 1fr; gap: 24px; }
+@media (max-width: 767px) {
+  .account-layout { grid-template-columns: 1fr; gap: 16px; }
+}
+
+/* ---------- Responsive Tables ---------- */
+@media (max-width: 767px) {
+  .tbl-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .tbl { font-size: 13px; }
+  .tbl th, .tbl td { padding: 10px 8px; white-space: nowrap; }
+}
+
+/* ---------- Responsive Grid Helpers ---------- */
+@media (max-width: 767px) {
+  .resp-grid-2 { grid-template-columns: 1fr !important; }
+  .resp-grid-3 { grid-template-columns: 1fr !important; }
+  .resp-grid-4 { grid-template-columns: repeat(2, 1fr) !important; }
+  .resp-pad { padding: 16px !important; }
+  .resp-gap { gap: 12px !important; }
+  .resp-hide { display: none !important; }
+  .resp-show { display: block !important; }
+  .resp-row { flex-direction: column !important; }
+}
+
+/* ---------- Product Card Grid ---------- */
+@media (max-width: 767px) {
+  .prod-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 12px !important; }
+}
+
+/* ---------- Services Page ---------- */
+@media (max-width: 767px) {
+  .services-grid { grid-template-columns: 1fr !important; }
+}
+
+/* ---------- Courses Page ---------- */
+@media (max-width: 767px) {
+  .courses-grid { grid-template-columns: 1fr !important; }
+}
+
+/* ---------- Wishlist Page ---------- */
+@media (max-width: 767px) {
+  .wishlist-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 12px !important; }
+}
+
+/* ---------- Hero Section ---------- */
+@media (max-width: 767px) {
+  .hero-section { padding: 32px 16px 28px !important; }
+  .hero-section h1 { font-size: 22px !important; }
+}
+
+/* ---------- Page Container ---------- */
+.page-container { max-width: 1200px; margin: 0 auto; padding: 28px 24px; }
+@media (max-width: 767px) {
+  .page-container { padding: 16px; }
+}
+
+/* ---------- Section spacing ---------- */
+@media (max-width: 767px) {
+  .section-pad { padding: 20px 16px !important; }
+}
+
+/* ---------- Tabs on mobile ---------- */
+@media (max-width: 767px) {
+  .tab-bar { overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+  .tab-bar::-webkit-scrollbar { display: none; }
+  .tab-btn { white-space: nowrap; font-size: 13px; padding: 10px 14px; }
+}
+
+/* ---------- Stack on mobile ---------- */
+@media (max-width: 767px) {
+  .stack-mobile { flex-direction: column !important; }
+  .stack-mobile-reverse { flex-direction: column-reverse !important; }
+}
+
+/* ---------- Full width on mobile ---------- */
+@media (max-width: 767px) {
+  .full-mobile { width: 100% !important; }
+}
+
+/* ---------- Text alignment ---------- */
+@media (max-width: 767px) {
+  .text-center-mobile { text-align: center !important; }
+}
+
+/* ---------- Gap reduction ---------- */
+@media (max-width: 767px) {
+  .gap-mobile { gap: 8px !important; }
+}
+
+/* ---------- Admin sidebar overlay on mobile ---------- */
+.admin-sidebar-overlay {
+  display: none;
+}
+@media (max-width: 767px) {
+  .admin-sidebar-overlay {
+    display: block; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,.4); z-index: 50;
+  }
+  .admin-sidebar-mobile {
+    position: fixed; top: 0; left: 0; bottom: 0; width: 280px;
+    background: #fff; z-index: 51; overflow-y: auto;
+    box-shadow: 4px 0 24px rgba(0,0,0,.15);
+    animation: slideIn .2s ease;
+  }
+  @keyframes slideIn {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(0); }
+  }
+}
+
+/* ---------- Notification dropdown on mobile ---------- */
+@media (max-width: 767px) {
+  .notif-dropdown { width: calc(100vw - 32px) !important; right: 0 !important; }
+}
+
+/* ---------- Auth section on mobile ---------- */
+@media (max-width: 767px) {
+  .topbar-auth .topbar-auth-btn { padding: 0 10px; font-size: 12px; }
+  .topbar-auth .topbar-auth-btn-primary { padding: 0 10px; font-size: 12px; }
+}
+
+/* ---------- Product detail tabs ---------- */
+@media (max-width: 767px) {
+  .prod-tab-content { padding: 16px !important; }
+}
+
+/* ---------- Order summary on mobile ---------- */
+@media (max-width: 767px) {
+  .order-summary-card { padding: 16px !important; }
+}
+
+/* ---------- Cart items on mobile ---------- */
+@media (max-width: 767px) {
+  .cart-item { flex-direction: column !important; align-items: flex-start !important; gap: 8px !important; }
+  .cart-item-actions { width: 100% !important; justify-content: space-between !important; }
+}
+
+/* ---------- Checkout form on mobile ---------- */
+@media (max-width: 767px) {
+  .checkout-form-grid { grid-template-columns: 1fr !important; }
+}
+
+/* ---------- Admin stats cards ---------- */
+@media (max-width: 767px) {
+  .stats-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 12px !important; }
+}
+
+/* ---------- Admin chart ---------- */
+@media (max-width: 767px) {
+  .chart-container { height: 200px !important; }
+}
+
+/* ---------- Login page ---------- */
+@media (max-width: 767px) {
+  .login-card { padding: 24px 20px !important; }
+}
+
+/* ---------- Product detail image ---------- */
+@media (max-width: 767px) {
+  .prod-image { height: 240px !important; }
+}
+
+/* ---------- Breadcrumb ---------- */
+@media (max-width: 767px) {
+  .breadcrumb { font-size: 12px !important; gap: 4px !important; }
+}
+
+/* ---------- Button sizing on mobile ---------- */
+@media (max-width: 767px) {
+  .btn-mobile-block { width: 100% !important; justify-content: center !important; }
+}
+
+/* ---------- Input sizing on mobile ---------- */
+@media (max-width: 767px) {
+  .input-mobile-full { width: 100% !important; }
+}
+
+/* ---------- Modal/Dialog on mobile ---------- */
+@media (max-width: 767px) {
+  .modal-content { width: calc(100vw - 32px) !important; margin: 16px !important; padding: 20px !important; }
+}
+
+/* ---------- Badge positioning on mobile ---------- */
+@media (max-width: 767px) {
+  .badge-mobile { top: 8px !important; left: 8px !important; font-size: 10px !important; padding: 2px 8px !important; }
+}
+
+/* ---------- Star rating on mobile ---------- */
+@media (max-width: 767px) {
+  .star-mobile { font-size: 12px !important; }
+}
+
+/* ---------- Price display on mobile ---------- */
+@media (max-width: 767px) {
+  .price-mobile { font-size: 16px !important; }
+}
+
+/* ---------- Product name on mobile ---------- */
+@media (max-width: 767px) {
+  .prod-name-mobile { font-size: 13px !important; min-height: 32px !important; }
+}
+
+/* ---------- Category strip on mobile ---------- */
+@media (max-width: 767px) {
+  .cat-strip { padding: 12px 16px !important; gap: 8px !important; }
+  .cat-pill { padding: 6px 12px !important; font-size: 12px !important; }
+}
+
+/* ---------- Shop page hero ---------- */
+@media (max-width: 767px) {
+  .shop-hero { padding: 32px 16px 28px !important; }
+  .shop-hero h1 { font-size: 22px !important; }
+  .shop-hero p { font-size: 14px !important; }
+}
+
+/* ---------- Product count on mobile ---------- */
+@media (max-width: 767px) {
+  .prod-count { font-size: 12px !important; }
+}
+
+/* ---------- Sort dropdown on mobile ---------- */
+@media (max-width: 767px) {
+  .sort-mobile { font-size: 12px !important; padding: 4px 8px !important; }
+}
+
+/* ---------- Filter toggle on mobile ---------- */
+@media (max-width: 767px) {
+  .filter-toggle { font-size: 12px !important; height: 32px !important; padding: 0 10px !important; }
+}
+
+/* ---------- Skeleton loader on mobile ---------- */
+@media (max-width: 767px) {
+  .skeleton-mobile { height: 240px !important; }
+}
+
+/* ---------- Empty state on mobile ---------- */
+@media (max-width: 767px) {
+  .empty-state { padding: 40px 16px !important; }
+  .empty-state-icon { width: 32px !important; height: 32px !important; }
+}
+
+/* ---------- Review section on mobile ---------- */
+@media (max-width: 767px) {
+  .review-card { padding: 12px !important; }
+}
+
+/* ---------- Specs table on mobile ---------- */
+@media (max-width: 767px) {
+  .specs-table { font-size: 13px !important; }
+  .specs-table td { padding: 8px 10px !important; }
+}
+
+/* ---------- Shipping info on mobile ---------- */
+@media (max-width: 767px) {
+  .shipping-section { padding: 14px !important; }
+}
+
+/* ---------- Related products on mobile ---------- */
+@media (max-width: 767px) {
+  .related-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 12px !important; }
+}
+
+/* ---------- Quantity controls on mobile ---------- */
+@media (max-width: 767px) {
+  .qty-control { height: 32px !important; }
+  .qty-control button { width: 32px !important; }
+  .qty-control input { width: 36px !important; font-size: 13px !important; }
+}
+
+/* ---------- Coupon input on mobile ---------- */
+@media (max-width: 767px) {
+  .coupon-row { flex-direction: column !important; gap: 8px !important; }
+  .coupon-row input { width: 100% !important; }
+  .coupon-row button { width: 100% !important; }
+}
+
+/* ---------- Payment method cards on mobile ---------- */
+@media (max-width: 767px) {
+  .payment-methods { flex-direction: column !important; gap: 8px !important; }
+}
+
+/* ---------- Address cards on mobile ---------- */
+@media (max-width: 767px) {
+  .address-grid { grid-template-columns: 1fr !important; }
+}
+
+/* ---------- Order history on mobile ---------- */
+@media (max-width: 767px) {
+  .order-history-item { flex-direction: column !important; gap: 8px !important; padding: 12px !important; }
+}
+
+/* ---------- Support tickets on mobile ---------- */
+@media (max-width: 767px) {
+  .ticket-item { flex-direction: column !important; gap: 6px !important; padding: 12px !important; }
+}
+
+/* ---------- Course cards on mobile ---------- */
+@media (max-width: 767px) {
+  .course-card { padding: 14px !important; }
+}
+
+/* ---------- Service cards on mobile ---------- */
+@media (max-width: 767px) {
+  .service-card { padding: 14px !important; }
+}
+
+/* ---------- Admin table actions on mobile ---------- */
+@media (max-width: 767px) {
+  .table-actions { flex-direction: column !important; gap: 8px !important; }
+  .table-actions .btn { width: 100% !important; }
+}
+
+/* ---------- Search input on mobile ---------- */
+@media (max-width: 767px) {
+  .search-mobile { padding-left: 36px !important; height: 38px !important; font-size: 13px !important; }
+}
+
+/* ---------- Page title on mobile ---------- */
+@media (max-width: 767px) {
+  .page-title { font-size: 18px !important; }
+}
+
+/* ---------- Section title on mobile ---------- */
+@media (max-width: 767px) {
+  .section-title { font-size: 15px !important; }
+}
+
+/* ---------- Card padding on mobile ---------- */
+@media (max-width: 767px) {
+  .card-pad-mobile { padding: 14px !important; }
+}
+
+/* ---------- Gap between sections on mobile ---------- */
+@media (max-width: 767px) {
+  .section-gap { margin-bottom: 16px !important; }
+}
+
+/* ---------- Admin sidebar toggle button ---------- */
+.admin-sidebar-toggle {
+  display: none;
+}
+@media (max-width: 767px) {
+  .admin-sidebar-toggle {
+    display: inline-flex;
+  }
+}
+
+/* ---------- Admin search on mobile ---------- */
+@media (max-width: 767px) {
+  .admin-search { display: none; }
+}
+
+/* ---------- Admin user info on mobile ---------- */
+@media (max-width: 767px) {
+  .admin-user-info { display: none; }
+}
+
+/* ---------- Admin notification dropdown on mobile ---------- */
+@media (max-width: 767px) {
+  .admin-notif-dropdown { right: 0 !important; width: calc(100vw - 32px) !important; }
+}
+
+/* ---------- Admin page header on mobile ---------- */
+@media (max-width: 767px) {
+  .admin-page-header { flex-direction: column !important; gap: 12px !important; }
+  .admin-page-header .btn { width: 100% !important; }
+}
+
+/* ---------- Admin filter bar on mobile ---------- */
+@media (max-width: 767px) {
+  .admin-filter-bar { flex-direction: column !important; gap: 8px !important; }
+  .admin-filter-bar .input { width: 100% !important; }
+}
+
+/* ---------- Admin stats value on mobile ---------- */
+@media (max-width: 767px) {
+  .stat-value { font-size: 20px !important; }
+}
+
+/* ---------- Admin stat label on mobile ---------- */
+@media (max-width: 767px) {
+  .stat-label { font-size: 11px !important; }
+}
+
+/* ---------- Admin recent orders on mobile ---------- */
+@media (max-width: 767px) {
+  .recent-orders { font-size: 12px !important; }
+}
+
+/* ---------- Admin activity feed on mobile ---------- */
+@media (max-width: 767px) {
+  .activity-item { padding: 10px !important; font-size: 12px !important; }
+}
+
+/* ---------- Admin chart legend on mobile ---------- */
+@media (max-width: 767px) {
+  .chart-legend { font-size: 11px !important; gap: 8px !important; }
+}
+
+/* ---------- Admin sidebar close button ---------- */
+.admin-sidebar-close {
+  display: none;
+}
+@media (max-width: 767px) {
+  .admin-sidebar-close {
+    display: flex; position: absolute; top: 12px; right: 12px;
+    width: 32px; height: 32px; border-radius: 8px; border: none;
+    background: var(--surface-2); color: var(--ink-2);
+    align-items: center; justify-content: center; cursor: pointer;
+  }
+}
+
+/* ---------- Admin mobile header ---------- */
+@media (max-width: 767px) {
+  .admin-mobile-header {
+    display: flex !important;
+  }
+}
+
+/* ---------- Admin sidebar logo ---------- */
+@media (max-width: 767px) {
+  .admin-sidebar-logo { padding: 16px 16px 12px !important; }
+}
+
+/* ---------- Admin nav items on mobile ---------- */
+@media (max-width: 767px) {
+  .admin-nav-item { padding: 8px 12px !important; font-size: 13px !important; }
+}
+
+/* ---------- Admin section label on mobile ---------- */
+@media (max-width: 767px) {
+  .admin-section-label { padding: 12px 12px 4px !important; font-size: 10px !important; }
+}
+
+/* ---------- Admin nav padding on mobile ---------- */
+@media (max-width: 767px) {
+  .admin-nav { padding: 8px 8px 16px !important; }
+}
+
+/* ---------- Admin header title on mobile ---------- */
+@media (max-width: 767px) {
+  .admin-header-title { font-size: 14px !important; }
+}
+
+/* ---------- Admin header search on mobile ---------- */
+@media (max-width: 767px) {
+  .admin-header-search { display: none !important; }
+}
+
+/* ---------- Admin header actions on mobile ---------- */
+@media (max-width: 767px) {
+  .admin-header-actions { gap: 8px !important; }
+}
+
+/* ---------- Admin header help on mobile ---------- */
+@media (max-width: 767px) {
+  .admin-header-help { display: none !important; }
+}
+
+/* ---------- Admin header user on mobile ---------- */
+@media (max-width: 767px) {
+  .admin-header-user { display: none !important; }
+}
+
+/* ---------- Admin header bell on mobile ---------- */
+@media (max-width: 767px) {
+  .admin-header-bell { display: none !important; }
+}
+
+/* ---------- Admin header menu on mobile ---------- */
+@media (max-width: 767px) {
+  .admin-header-menu { display: inline-flex !important; }
+}
+
+/* ---------- Admin header spacer on mobile ---------- */
+@media (max-width: 767px) {
+  .admin-header-spacer { flex: 1; }
+}
+
+/* ---------- Admin header right section on mobile ---------- */
+@media (max-width: 767px) {
+  .admin-header-right { gap: 8px !important; }
+}
+
+/* ---------- Admin sidebar overlay animation ---------- */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ---------- Product detail page responsive ---------- */
+@media (max-width: 767px) {
+  .prod-detail-hero { padding: 20px 16px !important; }
+  .prod-detail-hero h1 { font-size: 20px !important; }
+  .prod-detail-price { font-size: 22px !important; }
+  .prod-detail-was { font-size: 14px !important; }
+  .prod-detail-actions { flex-direction: column !important; gap: 10px !important; }
+  .prod-detail-actions .btn { width: 100% !important; }
+}
+
+/* ---------- Cart page responsive ---------- */
+@media (max-width: 767px) {
+  .cart-page-title { font-size: 18px !important; }
+  .cart-empty { padding: 40px 16px !important; }
+  .cart-empty-icon { width: 32px !important; height: 32px !important; }
+}
+
+/* ---------- Checkout page responsive ---------- */
+@media (max-width: 767px) {
+  .checkout-page-title { font-size: 18px !important; }
+  .checkout-section { padding: 16px !important; }
+}
+
+/* ---------- Account page responsive ---------- */
+@media (max-width: 767px) {
+  .account-page-title { font-size: 18px !important; }
+  .account-nav { overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; display: flex; gap: 4px; padding: 0 0 12px; }
+  .account-nav::-webkit-scrollbar { display: none; }
+  .account-nav-item { white-space: nowrap; font-size: 13px; padding: 8px 14px; }
+}
+
+/* ---------- Services page responsive ---------- */
+@media (max-width: 767px) {
+  .services-hero { padding: 32px 16px !important; }
+  .services-hero h1 { font-size: 22px !important; }
+}
+
+/* ---------- Courses page responsive ---------- */
+@media (max-width: 767px) {
+  .courses-hero { padding: 32px 16px !important; }
+  .courses-hero h1 { font-size: 22px !important; }
+}
+
+/* ---------- Login page responsive ---------- */
+@media (max-width: 767px) {
+  .login-page { padding: 24px 16px !important; }
+  .login-page h1 { font-size: 22px !important; }
+}
+
+/* ---------- Wishlist page responsive ---------- */
+@media (max-width: 767px) {
+  .wishlist-page-title { font-size: 18px !important; }
+  .wishlist-empty { padding: 40px 16px !important; }
+}
+
+/* ---------- Product detail tabs responsive ---------- */
+@media (max-width: 767px) {
+  .prod-tabs { overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+  .prod-tabs::-webkit-scrollbar { display: none; }
+  .prod-tab { white-space: nowrap; font-size: 13px; padding: 10px 14px; }
+}
+
+/* ---------- Product detail info section responsive ---------- */
+@media (max-width: 767px) {
+  .prod-info-section { padding: 16px !important; }
+}
+
+/* ---------- Product detail reviews responsive ---------- */
+@media (max-width: 767px) {
+  .prod-reviews { padding: 16px !important; }
+}
+
+/* ---------- Product detail related responsive ---------- */
+@media (max-width: 767px) {
+  .prod-related { padding: 16px !important; }
+  .prod-related h2 { font-size: 16px !important; }
+}
+
+/* ---------- Product detail breadcrumb responsive ---------- */
+@media (max-width: 767px) {
+  .prod-breadcrumb { padding: 12px 16px !important; font-size: 12px !important; }
+}
+
+/* ---------- Product detail actions responsive ---------- */
+@media (max-width: 767px) {
+  .prod-actions { flex-direction: column !important; gap: 10px !important; }
+  .prod-actions .btn { width: 100% !important; }
+}
+
+/* ---------- Product detail qty responsive ---------- */
+@media (max-width: 767px) {
+  .prod-qty { width: 100% !important; }
+  .prod-qty .qty-control { width: 100% !important; justify-content: center !important; }
+}
+
+/* ---------- Product detail shipping responsive ---------- */
+@media (max-width: 767px) {
+  .prod-shipping { padding: 14px !important; }
+  .prod-shipping h3 { font-size: 14px !important; }
+}
+
+/* ---------- Product detail specs responsive ---------- */
+@media (max-width: 767px) {
+  .prod-specs { font-size: 13px !important; }
+  .prod-specs td { padding: 6px 8px !important; }
+}
+
+/* ---------- Product detail desc responsive ---------- */
+@media (max-width: 767px) {
+  .prod-desc { font-size: 14px !important; line-height: 1.6 !important; }
+}
+
+/* ---------- Product detail rating responsive ---------- */
+@media (max-width: 767px) {
+  .prod-rating { font-size: 13px !important; }
+}
+
+/* ---------- Product detail stock responsive ---------- */
+@media (max-width: 767px) {
+  .prod-stock { font-size: 12px !important; }
+}
+
+/* ---------- Product detail brand responsive ---------- */
+@media (max-width: 767px) {
+  .prod-brand { font-size: 12px !important; }
+}
+
+/* ---------- Product detail sku responsive ---------- */
+@media (max-width: 767px) {
+  .prod-sku { font-size: 12px !important; }
+}
+
+/* ---------- Product detail category responsive ---------- */
+@media (max-width: 767px) {
+  .prod-category { font-size: 12px !important; }
+}
+
+/* ---------- Product detail reviews count responsive ---------- */
+@media (max-width: 767px) {
+  .prod-reviews-count { font-size: 12px !important; }
+}
+
+/* ---------- Product detail review item responsive ---------- */
+@media (max-width: 767px) {
+  .prod-review-item { padding: 10px !important; }
+  .prod-review-item p { font-size: 13px !important; }
+}
+
+/* ---------- Product detail rating bar responsive ---------- */
+@media (max-width: 767px) {
+  .rating-bar { height: 6px !important; }
+}
+
+/* ---------- Product detail rating row responsive ---------- */
+@media (max-width: 767px) {
+  .rating-row { font-size: 12px !important; gap: 6px !important; }
+}
+
+/* ---------- Product detail rating summary responsive ---------- */
+@media (max-width: 767px) {
+  .rating-summary { padding: 14px !important; }
+  .rating-summary .h2 { font-size: 28px !important; }
+}
+
+/* ---------- Product detail tab content responsive ---------- */
+@media (max-width: 767px) {
+  .tab-content { padding: 16px !important; }
+}
+
+/* ---------- Product detail image gallery responsive ---------- */
+@media (max-width: 767px) {
+  .prod-gallery { height: 260px !important; }
+}
+
+/* ---------- Product detail thumb responsive ---------- */
+@media (max-width: 767px) {
+  .prod-thumb { height: 260px !important; }
+}
+
+/* ---------- Product detail info responsive ---------- */
+@media (max-width: 767px) {
+  .prod-info { padding: 0 !important; }
+}
+
+/* ---------- Product detail header responsive ---------- */
+@media (max-width: 767px) {
+  .prod-header { margin-bottom: 16px !important; }
+}
+
+/* ---------- Product detail meta responsive ---------- */
+@media (max-width: 767px) {
+  .prod-meta { gap: 8px !important; flex-wrap: wrap !important; }
+}
+
+/* ---------- Product detail price row responsive ---------- */
+@media (max-width: 767px) {
+  .prod-price-row { margin-top: 12px !important; }
+}
+
+/* ---------- Product detail button group responsive ---------- */
+@media (max-width: 767px) {
+  .prod-btn-group { margin-top: 16px !important; }
+}
+
+/* ---------- Product detail features responsive ---------- */
+@media (max-width: 767px) {
+  .prod-features { margin-top: 16px !important; gap: 8px !important; }
+  .prod-features li { font-size: 13px !important; }
+}
+
+/* ---------- Product detail shipping features responsive ---------- */
+@media (max-width: 767px) {
+  .prod-ship-features { gap: 8px !important; }
+  .prod-ship-features li { font-size: 13px !important; }
+}
+
+/* ---------- Product detail return features responsive ---------- */
+@media (max-width: 767px) {
+  .prod-return-features { gap: 8px !important; }
+  .prod-return-features li { font-size: 13px !important; }
+}
+
+/* ---------- Product detail warranty features responsive ---------- */
+@media (max-width: 767px) {
+  .prod-warranty-features { gap: 8px !important; }
+  .prod-warranty-features li { font-size: 13px !important; }
+}
+
+/* ---------- Product detail review form responsive ---------- */
+@media (max-width: 767px) {
+  .prod-review-form { padding: 14px !important; }
+  .prod-review-form textarea { font-size: 13px !important; }
+}
+
+/* ---------- Product detail review actions responsive ---------- */
+@media (max-width: 767px) {
+  .prod-review-actions { flex-direction: column !important; gap: 8px !important; }
+  .prod-review-actions .btn { width: 100% !important; }
+}
+
+/* ---------- Product detail review header responsive ---------- */
+@media (max-width: 767px) {
+  .prod-review-header { flex-direction: column !important; gap: 4px !important; }
+}
+
+/* ---------- Product detail review meta responsive ---------- */

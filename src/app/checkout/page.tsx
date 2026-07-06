@@ -242,7 +242,7 @@ export default function CheckoutPage() {
 
   return (
     <StoreShell>
-      <div style={{ maxWidth: 1000, margin: '0 auto', padding: '28px 24px', position: 'relative' }}>
+      <div className="page-container" style={{ maxWidth: 1000, position: 'relative' }}>
         {loading && (
           <div style={{
             position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
@@ -264,7 +264,7 @@ export default function CheckoutPage() {
         <StepIndicator step={step} />
 
         {step === 0 && (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 24, alignItems: 'flex-start' }}>
+          <div className="checkout-layout" style={{ alignItems: 'flex-start' }}>
             <div className="card card-pad">
               <h2 style={{ fontSize: 18, fontWeight: 800, marginBottom: 20 }}>Delivery Information</h2>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
@@ -335,7 +335,7 @@ export default function CheckoutPage() {
         )}
 
         {step === 1 && (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 24, alignItems: 'flex-start' }}>
+          <div className="checkout-layout" style={{ alignItems: 'flex-start' }}>
             <div className="card card-pad">
               <h2 style={{ fontSize: 18, fontWeight: 800, marginBottom: 20 }}>Payment Method</h2>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 20 }}>

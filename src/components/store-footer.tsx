@@ -9,10 +9,7 @@ export function StoreFooter() {
   ] as const;
   return (
     <footer style={{ borderTop: '1px solid var(--line)', background: '#fff', marginTop: 32 }}>
-      <div style={{
-        maxWidth: 1480, margin: '0 auto', padding: '26px 28px',
-        display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 24,
-      }}>
+      <div className="store-footer-grid">
         {feats.map(([ic, t, s]) => (
           <div key={t} className="row gap12">
             <div style={{

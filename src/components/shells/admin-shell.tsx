@@ -62,6 +62,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
   const [notifCount, setNotifCount] = useState(0);
   const [notifOpen, setNotifOpen] = useState(false);
   const [notifications, setNotifications] = useState<{ type: string; message: string; link: string }[]>([]);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     fetch('/api/notifications')
@@ -74,23 +75,21 @@ export function AdminShell({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg)' }}>
-      <aside style={{
-        width: 248, flexShrink: 0, background: '#fff', borderRight: '1px solid var(--line)',
-        display: 'flex', flexDirection: 'column', position: 'sticky', top: 0, height: '100vh', overflow: 'hidden',
-      }}>
+    <div className="admin-shell">
+      {/* Desktop sidebar */}
+      <aside className="admin-sidebar">
         <div style={{ padding: '20px 20px 16px', borderBottom: '1px solid var(--line-2)' }}>
           <Link href="/admin"><Logo size={0.92} /></Link>
         </div>
-        <nav className="no-sb" style={{ padding: '12px 12px 24px', overflowY: 'auto', flex: 1 }}>
+        <nav className="no-sb admin-nav" style={{ padding: '12px 12px 24px', overflowY: 'auto', flex: 1 }}>
           {ADMIN_NAV.map((grp, gi) => (
             <div key={gi} style={{ marginBottom: 6 }}>
-              {grp.sec && <div className="eyebrow" style={{ padding: '14px 12px 6px' }}>{grp.sec}</div>}
+              {grp.sec && <div className="eyebrow admin-section-label" style={{ padding: '14px 12px 6px' }}>{grp.sec}</div>}
               {grp.items.map(([to, ic, label]) => {
                 const href = to === 'admin' ? '/admin' : to;
                 const active = pathname === href;
                 return (
-                  <Link key={to} href={href} style={{
+                  <Link key={to} href={href} className="admin-nav-item" style={{
                     display: 'flex', alignItems: 'center', gap: 11, padding: '9px 12px', borderRadius: 9,
                     fontSize: 13.5, fontWeight: active ? 700 : 500, marginBottom: 1,
                     color: active ? '#fff' : 'var(--ink-2)',
@@ -105,17 +104,51 @@ export function AdminShell({ children }: { children: ReactNode }) {
           ))}
         </nav>
       </aside>
-      <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
-        <header style={{
-          height: 64, background: '#fff', borderBottom: '1px solid var(--line)',
-          display: 'flex', alignItems: 'center', gap: 18, padding: '0 24px',
-          position: 'sticky', top: 0, zIndex: 20,
-        }}>
-          <button className="row" style={{ background: 'none', border: 'none', color: 'var(--ink-2)' }}>
+
+      {/* Mobile sidebar overlay */}
+      {sidebarOpen && (
+        <div className="admin-sidebar-overlay" onClick={() => setSidebarOpen(false)}>
+          <div className="admin-sidebar-mobile" onClick={e => e.stopPropagation()}>
+            <button className="admin-sidebar-close" onClick={() => setSidebarOpen(false)}>
+              <Icon name="chevR" size={18} />
+            </button>
+            <div className="admin-sidebar-logo" style={{ padding: '20px 20px 16px', borderBottom: '1px solid var(--line-2)' }}>
+              <Link href="/admin"><Logo size={0.92} /></Link>
+            </div>
+            <nav className="no-sb admin-nav" style={{ padding: '12px 12px 24px', overflowY: 'auto', flex: 1 }}>
+              {ADMIN_NAV.map((grp, gi) => (
+                <div key={gi} style={{ marginBottom: 6 }}>
+                  {grp.sec && <div className="eyebrow admin-section-label" style={{ padding: '14px 12px 6px' }}>{grp.sec}</div>}
+                  {grp.items.map(([to, ic, label]) => {
+                    const href = to === 'admin' ? '/admin' : to;
+                    const active = pathname === href;
+                    return (
+                      <Link key={to} href={href} className="admin-nav-item" onClick={() => setSidebarOpen(false)} style={{
+                        display: 'flex', alignItems: 'center', gap: 11, padding: '9px 12px', borderRadius: 9,
+                        fontSize: 13.5, fontWeight: active ? 700 : 500, marginBottom: 1,
+                        color: active ? '#fff' : 'var(--ink-2)',
+                        background: active ? 'var(--blue-600)' : 'transparent',
+                        boxShadow: active ? '0 2px 8px rgba(37,99,235,.3)' : 'none',
+                      }}>
+                        <Icon name={ic} size={18} sw={active ? 2 : 1.8} />{label}
+                      </Link>
+                    );
+                  })}
+                </div>
+              ))}
+            </nav>
+          </div>
+        </div>
+      )}
+
+      <div className="admin-main">
+        <header className="admin-header">
+          <button className="admin-sidebar-toggle row" style={{ background: 'none', border: 'none', color: 'var(--ink-2)' }}
+            onClick={() => setSidebarOpen(true)}>
             <Icon name="menu" size={22} />
           </button>
-          <div className="h3" style={{ fontSize: 16 }}>{title}</div>
-          <div className="grow" style={{ maxWidth: 560, margin: '0 auto', position: 'relative' }}>
+          <div className="admin-header-title h3" style={{ fontSize: 16 }}>{title}</div>
+          <div className="grow admin-header-search" style={{ maxWidth: 560, margin: '0 auto', position: 'relative' }}>
             <span style={{ position: 'absolute', left: 14, top: 11, color: 'var(--muted-2)' }}>
               <Icon name="search" size={18} />
             </span>
@@ -123,13 +156,13 @@ export function AdminShell({ children }: { children: ReactNode }) {
               style={{ paddingLeft: 42, height: 42, background: 'var(--surface-2)', border: '1px solid var(--line-2)' }}
               placeholder="Search orders, products, customers..." />
           </div>
-          <div className="row gap16" style={{ position: 'relative' }}>
-            <button style={iconBtn} onClick={() => setNotifOpen(!notifOpen)}>
+          <div className="row admin-header-actions" style={{ position: 'relative', gap: 16 }}>
+            <button className="admin-header-bell" style={iconBtn} onClick={() => setNotifOpen(!notifOpen)}>
               <Icon name="bell" size={20} />
               {notifCount > 0 && <span style={navBadge}>{notifCount > 9 ? '9+' : notifCount}</span>}
             </button>
             {notifOpen && (
-              <div style={{
+              <div className="notif-dropdown" style={{
                 position: 'absolute', top: '100%', right: 80, width: 320, background: '#fff',
                 borderRadius: 12, boxShadow: '0 8px 32px rgba(0,0,0,.12)', border: '1px solid var(--line)',
                 zIndex: 100, padding: 8, marginTop: 4,
@@ -156,8 +189,8 @@ export function AdminShell({ children }: { children: ReactNode }) {
                 )}
               </div>
             )}
-            <button style={iconBtn}><Icon name="help" size={20} /></button>
-            <div className="row gap8" style={{ paddingLeft: 6, borderLeft: '1px solid var(--line)', alignItems: 'center' }}>
+            <button className="admin-header-help" style={iconBtn}><Icon name="help" size={20} /></button>
+            <div className="row gap8 admin-header-user" style={{ paddingLeft: 6, borderLeft: '1px solid var(--line)', alignItems: 'center' }}>
               <UserButton appearance={{ elements: { avatarBox: { width: 34, height: 34 } } }} />
               <div style={{ lineHeight: 1.2 }}>
                 <div style={{ fontSize: 13, fontWeight: 700 }}>{user?.firstName || 'Admin'}</div>
@@ -166,11 +199,8 @@ export function AdminShell({ children }: { children: ReactNode }) {
             </div>
           </div>
         </header>
-        <main className="fade-in" style={{ padding: '28px 24px 40px', flex: 1 }}>{children}</main>
-        <footer style={{
-          padding: '16px 24px', borderTop: '1px solid var(--line)', background: '#fff',
-          display: 'flex', justifyContent: 'space-between', fontSize: 12.5, color: 'var(--muted)',
-        }}>
+        <main className="fade-in admin-content">{children}</main>
+        <footer className="admin-footer">
           <span>© 2026 VoltCore Electronics. All rights reserved.</span>
           <span>Made with ♥ in Accra, Ghana</span>
         </footer>
