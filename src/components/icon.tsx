@@ -1,0 +1,80 @@
+import React from 'react';
+
+const ICONS: Record<string, string> = {
+  bolt:    'M13 2 4 14h7l-1 8 9-12h-7z',
+  grid:    'M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z',
+  orders:  'M9 2h6a1 1 0 0 1 1 1v1h2a1 1 0 0 1 1 1v15a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h2V3a1 1 0 0 1 1-1zM9 4v1h6V4M8 11h8M8 15h5',
+  box:     'M21 8 12 3 3 8v8l9 5 9-5zM3 8l9 5 9-5M12 13v8',
+  tags:    'M3 7v5l8 8 7-7-8-8H4zM7.5 8.5h.01',
+  layers:  'M12 3 2 9l10 6 10-6zM2 15l10 6 10-6',
+  users:   'M16 18v-1a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v1M9 9a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7M21 18v-1a4 4 0 0 0-3-3.8M16 2.2a3.5 3.5 0 0 1 0 6.6',
+  star:    'M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6-5.4-3-5.4 3 1.2-6L3.3 9.3l6.1-.7z',
+  ticket:  'M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4z',
+  cart:    'M3 3h2l2.4 12.2a1 1 0 0 0 1 .8h9.7a1 1 0 0 0 1-.8L22 7H6M9 21a1 1 0 1 0 0-2 1 1 0 0 0 0 2M18 21a1 1 0 1 0 0-2 1 1 0 0 0 0 2',
+  heart:   'M19.5 5.5a5 5 0 0 0-7 0L12 6l-.5-.5a5 5 0 0 0-7 7l.5.5L12 20l7-7 .5-.5a5 5 0 0 0 0-7z',
+  wallet:  'M3 7a2 2 0 0 1 2-2h13a1 1 0 0 1 1 1v2M3 7v10a2 2 0 0 0 2 2h14a1 1 0 0 0 1-1v-3M3 7h16a1 1 0 0 1 1 1v3h-5a2 2 0 0 0 0 4h5M16 12h.01',
+  download:'M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2',
+  cap:     'M22 9 12 4 2 9l10 5zM6 11v5c0 1 2.7 2.5 6 2.5s6-1.5 6-2.5v-5M22 9v6',
+  book:    'M4 4a2 2 0 0 1 2-2h13v18H6a2 2 0 0 0-2 2zM4 4v16',
+  wrench:  'M14.7 6.3a4 4 0 0 0-5 5L3 18l3 3 6.7-6.7a4 4 0 0 0 5-5l-2.5 2.5-2.8-.7-.7-2.8z',
+  bell:    'M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0',
+  help:    'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3M12 17h.01',
+  search:  'M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16M21 21l-4.3-4.3',
+  menu:    'M3 6h18M3 12h18M3 18h18',
+  chevD:   'M6 9l6 6 6-6',
+  chevR:   'M9 6l6 6-6 6',
+  arrowR:  'M5 12h14M13 6l6 6-6 6',
+  eye:     'M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6',
+  plus:    'M12 5v14M5 12h14',
+  cal:     'M3 6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM3 9h18M8 2v4M16 2v4',
+  pin:     'M12 21s7-6 7-11a7 7 0 1 0-14 0c0 5 7 11 7 11M12 12a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5',
+  user:    'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8M5 21a7 7 0 0 1 14 0',
+  card:    'M2 7a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2zM2 10h20M6 15h4',
+  gear:    'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6M19 12a7 7 0 0 0-.1-1l2-1.5-2-3.4-2.3 1a7 7 0 0 0-1.7-1l-.4-2.6h-4l-.4 2.6a7 7 0 0 0-1.7 1l-2.3-1-2 3.4 2 1.5a7 7 0 0 0 0 2l-2 1.5 2 3.4 2.3-1a7 7 0 0 0 1.7 1l.4 2.6h4l.4-2.6a7 7 0 0 0 1.7-1l2.3 1 2-3.4-2-1.5a7 7 0 0 0 .1-1z',
+  logout:  'M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9',
+  truck:   'M3 6a1 1 0 0 1 1-1h10v11H3zM14 9h4l3 3v4h-7M7 19a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3M18 19a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3',
+  shield:  'M12 3 4 6v6c0 5 8 9 8 9s8-4 8-9V6z',
+  headset: 'M4 14v-2a8 8 0 0 1 16 0v2M4 14a2 2 0 0 0 2 2h1v-5H6a2 2 0 0 0-2 2zM20 14a2 2 0 0 1-2 2h-1v-5h1a2 2 0 0 1 2 2zM18 16v1a4 4 0 0 1-4 4h-2',
+  rosette: 'M12 14a5 5 0 1 0 0-10 5 5 0 0 0 0 10M8.5 13 7 22l5-3 5 3-1.5-9',
+  shop:    'M3 9 4.5 4h15L21 9M3 9v10a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V9M3 9h18M8 13h8',
+  pkg:     'M12 2 3 7v10l9 5 9-5V7zM3 7l9 5 9-5M12 12v10',
+  refund:  'M3 7v6h6M3 13a9 9 0 1 0 2.5-6.4L3 9',
+  doc:     'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M9 13h6M9 17h6',
+  image:   'M3 5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM8.5 11a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3M21 16l-5-5L5 21',
+  bars:    'M3 21h18M7 21V10M12 21V4M17 21v-7',
+  play:    'M6 4l14 8-14 8z',
+  check:   'M20 6 9 17l-5-5',
+  filter:  'M3 5h18l-7 8v6l-4 2v-8z',
+  store:   'M12 2 2 7l10 5 10-5zM2 7v10l10 5 10-5V7',
+  clock:   'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20M12 7v5l3 2',
+  globe:   'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20',
+  list:    'M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01',
+  trend:   'M3 17l6-6 4 4 8-8M21 7v5h-5',
+};
+
+interface IconProps {
+  name: string;
+  size?: number;
+  sw?: number;
+  color?: string;
+  fill?: string;
+  style?: React.CSSProperties;
+}
+
+export function Icon({ name, size = 20, sw = 1.8, color = 'currentColor', fill, style }: IconProps) {
+  const d = ICONS[name] || ICONS.box;
+  return (
+    <svg
+      width={size} height={size} viewBox="0 0 24 24"
+      fill={fill || 'none'}
+      stroke={fill ? 'none' : color}
+      strokeWidth={sw}
+      strokeLinecap="round" strokeLinejoin="round"
+      style={style} aria-hidden="true"
+    >
+      {d.split('M').filter(Boolean).map((seg, i) => (
+        <path key={i} d={'M' + seg} fill={fill || 'none'} />
+      ))}
+    </svg>
+  );
+}
