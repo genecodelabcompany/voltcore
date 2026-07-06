@@ -41,8 +41,12 @@ export function ProductCard({ product: p }: ProductCardProps) {
       onMouseLeave={e => { (e.currentTarget as HTMLElement).style.boxShadow = 'var(--shadow)'; (e.currentTarget as HTMLElement).style.transform = 'none'; }}
     >
       <div style={{ position: 'relative' }}>
-        <div onClick={() => router.push('/product/' + p.id)} style={{ display: 'block', height: 180 }}>
-          <ProductThumb glyph={p.glyph} fill radius={0} tag={p.name} />
+        <div onClick={() => router.push('/product/' + p.id)} style={{ display: 'block', height: 180, overflow: 'hidden' }}>
+          {p.image_url ? (
+            <img src={p.image_url} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          ) : (
+            <ProductThumb glyph={p.glyph} fill radius={0} tag={p.name} />
+          )}
         </div>
         {p.badge && (
           <span className={`pill ${badgeColor[p.badge] || 'pill-slate'}`} style={{ position: 'absolute', top: 12, left: 12 }}>

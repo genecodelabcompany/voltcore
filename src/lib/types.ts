@@ -22,6 +22,7 @@ export interface Product {
   brand: string;
   badge: string | null;
   desc: string;
+  image_url?: string;
 }
 
 export interface OrderItem {

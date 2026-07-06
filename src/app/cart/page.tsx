@@ -1,4 +1,5 @@
 'use client';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { StoreShell } from '@/components/shells/store-shell';
 import { OrderSummary } from '@/components/order-summary';
@@ -6,14 +7,24 @@ import { ProductThumb } from '@/components/product-thumb';
 import { Icon } from '@/components/icon';
 import { useStore } from '@/context/store-context';
 import { money } from '@/lib/utils';
-import { productById } from '@/lib/data';
+import type { Product } from '@/lib/types';
 
 export default function CartPage() {
   const { cart, setQty, removeItem } = useStore();
+  const [products, setProducts] = useState<Product[]>([]);
+
+  useEffect(() => {
+    fetch('/api/products?limit=500')
+      .then(r => r.json())
+      .then(data => setProducts(data.products ?? []))
+      .catch(() => {});
+  }, []);
+
+  const productMap = new Map(products.map(p => [p.id, p]));
 
   const enriched = cart.map(item => ({
     ...item,
-    product: productById(item.id),
+    product: productMap.get(item.id),
   })).filter(i => i.product);
 
   return (
@@ -40,8 +51,12 @@ export default function CartPage() {
                     borderBottom: i < enriched.length - 1 ? '1px solid var(--line-2)' : 'none',
                     alignItems: 'flex-start',
                   }}>
-                    <Link href={`/product/${p.id}`} style={{ flexShrink: 0 }}>
-                      <ProductThumb glyph={p.glyph} size={64} />
+                    <Link href={`/product/${p.id}`} style={{ flexShrink: 0, width: 64, height: 64, borderRadius: 'var(--r)', overflow: 'hidden' }}>
+                      {p.image_url ? (
+                        <img src={p.image_url} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      ) : (
+                        <ProductThumb glyph={p.glyph} size={64} />
+                      )}
                     </Link>
                     <div className="grow" style={{ minWidth: 0 }}>
                       <Link href={`/product/${p.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>

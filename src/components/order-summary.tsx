@@ -3,8 +3,8 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Icon } from './icon';
 import { money } from '@/lib/utils';
-import { productById } from '@/lib/data';
 import { useStore } from '@/context/store-context';
+import type { Product } from '@/lib/types';
 
 interface OrderSummaryProps {
   checkoutHref?: string;
@@ -19,9 +19,19 @@ export function OrderSummary({ checkoutHref, onCheckout, shippingFee, discountAm
   const router = useRouter();
   const [coupon, setCoupon] = useState('');
   const [applied, setApplied] = useState(false);
+  const [products, setProducts] = useState<Product[]>([]);
+
+  useEffect(() => {
+    fetch('/api/products?limit=500')
+      .then(r => r.json())
+      .then(data => setProducts(data.products ?? []))
+      .catch(() => {});
+  }, []);
+
+  const productMap = new Map(products.map(p => [p.id, p]));
 
   const subtotal = cart.reduce((s, item) => {
-    const p = productById(item.id);
+    const p = productMap.get(item.id);
     return s + (p ? p.price * item.qty : 0);
   }, 0);
   

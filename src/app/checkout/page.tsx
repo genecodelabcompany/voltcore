@@ -6,7 +6,7 @@ import { OrderSummary } from '@/components/order-summary';
 import { Icon } from '@/components/icon';
 import { useStore } from '@/context/store-context';
 import { money } from '@/lib/utils';
-import { productById } from '@/lib/data';
+import type { Product } from '@/lib/types';
 
 declare global {
   interface Window {
@@ -46,6 +46,7 @@ export default function CheckoutPage() {
   const [createdOrderId, setCreatedOrderId] = useState('');
   const [loading, setLoading] = useState(false);
   const [loadingText, setLoadingText] = useState('');
+  const [products, setProducts] = useState<Product[]>([]);
 
   // Form states
   const [firstName, setFirstName] = useState('Kwame');
@@ -60,7 +61,15 @@ export default function CheckoutPage() {
 
   const [total, setTotal] = useState(0);
 
-  // Load Paystack Inline JS and track readiness
+  // Fetch all products for cart lookups
+  useEffect(() => {
+    fetch('/api/products?limit=500')
+      .then(r => r.json())
+      .then(data => setProducts(data.products ?? []))
+      .catch(() => {});
+  }, []);
+
+  // Load Paystack Inline JS
   const [paystackReady, setPaystackReady] = useState(false);
   useEffect(() => {
     const script = document.createElement('script');
@@ -73,8 +82,10 @@ export default function CheckoutPage() {
     };
   }, []);
 
+  const productMap = new Map(products.map(p => [p.id, p]));
+
   const subtotal = cart.reduce((s, item) => {
-    const p = productById(item.id);
+    const p = productMap.get(item.id);
     return s + (p ? p.price * item.qty : 0);
   }, 0);
 
@@ -99,9 +110,9 @@ export default function CheckoutPage() {
     setLoadingText('Initializing order...');
 
     try {
-      // 1. Map cart items for database
+      // 1. Map cart items for database using fetched products
       const items = cart.map(item => {
-        const p = productById(item.id);
+        const p = productMap.get(item.id);
         return {
           product_id: item.id,
           name: p ? p.name : 'Unknown Product',
@@ -129,7 +140,8 @@ export default function CheckoutPage() {
       });
 
       if (!orderRes.ok) {
-        throw new Error('Failed to create order in database');
+        const errData = await orderRes.json().catch(() => ({}));
+        throw new Error(errData.error || 'Failed to create order in database');
       }
 
       const { id: orderId } = await orderRes.json();
@@ -173,9 +185,7 @@ export default function CheckoutPage() {
         currency: 'GHS',
         ref: reference,
         access_code: access_code,
-        // Paystack calls this when payment succeeds
         callback: function (response: any) {
-          // Use an async IIFE to handle async work without making the callback itself async
           (async () => {
             setLoading(true);
             setLoadingText('Verifying payment status...');

@@ -85,18 +85,27 @@ export default function ProductDetail({ params }: { params: { id: string } }) {
           {/* Product visual */}
           <div>
             <div className="card" style={{
-              padding: 40, display: 'flex', alignItems: 'center', justifyContent: 'center',
-              aspectRatio: '1', marginBottom: 16,
+              padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+              aspectRatio: '1', marginBottom: 16, overflow: 'hidden',
             }}>
-              <ProductThumb glyph={product.glyph} size={160} />
+              {product.image_url ? (
+                <img src={product.image_url} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              ) : (
+                <ProductThumb glyph={product.glyph} size={160} />
+              )}
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 8 }}>
               {[0,1,2,3].map(i => (
                 <div key={i} className="card" style={{
                   padding: 12, display: 'flex', alignItems: 'center', justifyContent: 'center',
                   cursor: 'pointer', border: i === 0 ? '2px solid var(--blue-600)' : undefined,
+                  overflow: 'hidden',
                 }}>
-                  <ProductThumb glyph={product.glyph} size={36} />
+                  {product.image_url ? (
+                    <img src={product.image_url} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : (
+                    <ProductThumb glyph={product.glyph} size={36} />
+                  )}
                 </div>
               ))}
             </div>
