@@ -1,6 +1,7 @@
 import { SignIn } from '@clerk/nextjs';
 import { Logo } from '@/components/logo';
 import { Icon } from '@/components/icon';
+import Link from 'next/link';
 
 const feats = [
   ['box', '12,000+ Components', 'Arduino, sensors, modules & more'],
@@ -23,10 +24,20 @@ export default function LoginPage() {
           background: 'radial-gradient(circle,rgba(59,130,246,.28),transparent 70%)',
           top: -120, right: -120,
         }} />
-        <div style={{ position: 'relative' }}><Logo size={1.05} dark /></div>
+        <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Logo size={1.05} dark />
+          <Link href="/shop" style={{
+            display: 'inline-flex', alignItems: 'center', gap: 6,
+            color: '#93C5FD', fontSize: 14, fontWeight: 600, textDecoration: 'none',
+            padding: '8px 16px', borderRadius: 8, border: '1px solid rgba(147,197,253,.3)',
+            transition: 'background .2s',
+          }}>
+            <Icon name="arrowR" size={15} /> Back to Shop
+          </Link>
+        </div>
         <div style={{ position: 'relative', maxWidth: 460 }}>
           <h1 style={{ fontSize: 38, fontWeight: 800, lineHeight: 1.12, letterSpacing: '-.02em' }}>
-            Ghana&apos;s home for electronics &amp; engineering.
+            Ghana's home for electronics & engineering.
           </h1>
           <p style={{ color: '#9FB6D6', fontSize: 16, marginTop: 16, lineHeight: 1.6 }}>
             Shop quality components, learn from practicing engineers, and book professional services — all in one platform built in Accra.
@@ -55,18 +66,44 @@ export default function LoginPage() {
       </div>
 
       {/* Clerk sign-in panel */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 40 }}>
-        <SignIn
-          forceRedirectUrl="/account"
-          signUpForceRedirectUrl="/account"
-          signUpUrl="/sign-up"
-          appearance={{
-            elements: {
-              rootBox: { width: '100%', maxWidth: 400 },
-              card: { boxShadow: 'none', padding: 0, border: 'none', background: 'transparent' },
-            },
-          }}
-        />
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 40,
+        background: '#fff',
+      }}>
+        <div style={{ width: '100%', maxWidth: 420 }}>
+          <div style={{ textAlign: 'center', marginBottom: 32 }}>
+            <h2 style={{ fontSize: 24, fontWeight: 800, margin: 0 }}>Welcome back</h2>
+            <p style={{ color: 'var(--muted)', fontSize: 14, marginTop: 6 }}>Sign in to your VoltCore account</p>
+          </div>
+          <SignIn
+            forceRedirectUrl="/api/auth/callback"
+            signUpForceRedirectUrl="/api/auth/callback"
+            signUpUrl="/sign-up"
+            appearance={{
+              elements: {
+                rootBox: { width: '100%' },
+                card: { boxShadow: 'none', padding: 0, border: 'none', background: 'transparent' },
+                headerTitle: { display: 'none' },
+                headerSubtitle: { display: 'none' },
+                socialButtonsBlockButton: {
+                  borderRadius: 8, border: '1px solid #e2e8f0',
+                  fontSize: 14, fontWeight: 600, height: 44,
+                },
+                formButtonPrimary: {
+                  background: 'var(--blue-600)', borderRadius: 8,
+                  fontSize: 14, fontWeight: 600, height: 44,
+                },
+                formFieldInput: {
+                  borderRadius: 8, border: '1px solid #e2e8f0',
+                  fontSize: 14, height: 44,
+                },
+                footerActionLink: { color: 'var(--blue-600)', fontWeight: 600 },
+                dividerLine: { background: '#e2e8f0' },
+                dividerText: { color: '#94a3b8' },
+              },
+            }}
+          />
+        </div>
       </div>
     </div>
   );
