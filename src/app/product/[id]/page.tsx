@@ -72,7 +72,7 @@ export default function ProductDetail({ params }: { params: { id: string } }) {
     <StoreShell>
       <div className="page-container" style={{ maxWidth: 1100 }}>
         {/* Breadcrumb */}
-        <div className="row gap6 sub" style={{ fontSize: 13, marginBottom: 20 }}>
+        <div className="breadcrumb row gap6 sub" style={{ fontSize: 13, marginBottom: 20 }}>
           <span style={{ cursor: 'pointer', color: 'var(--blue-600)' }} onClick={() => router.push('/shop')}>Shop</span>
           <span>/</span>
           <span style={{ cursor: 'pointer', color: 'var(--blue-600)' }} onClick={() => router.push('/shop')}>{product.category}</span>
@@ -94,7 +94,7 @@ export default function ProductDetail({ params }: { params: { id: string } }) {
                 <ProductThumb glyph={product.glyph} size={160} />
               )}
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 8 }}>
+            <div className="prod-thumb-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 8 }}>
               {[0,1,2,3].map(i => (
                 <div key={i} className="card" style={{
                   padding: 12, display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -141,8 +141,8 @@ export default function ProductDetail({ params }: { params: { id: string } }) {
             </div>
 
             {/* Qty + Add to cart */}
-            <div className="row gap12" style={{ marginBottom: 16 }}>
-              <div className="row gap0" style={{ border: '1px solid var(--line)', borderRadius: 'var(--r)', overflow: 'hidden' }}>
+            <div className="prod-actions" style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
+              <div className="prod-qty row gap0" style={{ border: '1px solid var(--line)', borderRadius: 'var(--r)', overflow: 'hidden' }}>
                 <button onClick={() => setQty(q => Math.max(1, q - 1))} className="btn btn-ghost" style={{ borderRadius: 0, padding: '8px 14px', border: 'none' }}>−</button>
                 <span style={{ padding: '8px 14px', fontWeight: 700, minWidth: 40, textAlign: 'center' }}>{qty}</span>
                 <button onClick={() => setQty(q => q + 1)} className="btn btn-ghost" style={{ borderRadius: 0, padding: '8px 14px', border: 'none' }}>+</button>
@@ -157,7 +157,7 @@ export default function ProductDetail({ params }: { params: { id: string } }) {
             <button className="btn btn-soft" style={{ width: '100%' }}>Buy Now</button>
 
             {/* Features */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 24 }}>
+            <div className="prod-features-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 24 }}>
               {[
                 ['truck', 'Free shipping over GHS 500'],
                 ['shield', 'Genuine components'],
@@ -174,9 +174,9 @@ export default function ProductDetail({ params }: { params: { id: string } }) {
 
         {/* Tabs */}
         <div className="card card-pad" style={{ marginBottom: 32 }}>
-          <div className="row gap0" style={{ borderBottom: '1px solid var(--line)', marginBottom: 24 }}>
+          <div className="prod-tab-bar row gap0" style={{ borderBottom: '1px solid var(--line)', marginBottom: 24 }}>
             {['Description', 'Specifications', 'Shipping & Returns', 'Reviews'].map(t => (
-              <button key={t} onClick={() => setTab(t)} style={{
+              <button key={t} onClick={() => setTab(t)} className="prod-tab-btn" style={{
                 padding: '10px 20px', border: 'none', cursor: 'pointer', background: 'transparent',
                 fontWeight: tab === t ? 700 : 500, color: tab === t ? 'var(--blue-600)' : 'var(--muted)',
                 borderBottom: tab === t ? '2px solid var(--blue-600)' : '2px solid transparent',
@@ -287,7 +287,7 @@ export default function ProductDetail({ params }: { params: { id: string } }) {
           )}
           {tab === 'Reviews' && (
             <div>
-              <div className="row gap24" style={{ marginBottom: 24 }}>
+              <div className="prod-review-summary row gap24" style={{ marginBottom: 24 }}>
                 <div style={{ textAlign: 'center' }}>
                   <div style={{ fontSize: 48, fontWeight: 900, lineHeight: 1 }}>{product.rating ?? 4.5}</div>
                   <StarRow rating={product.rating ?? 4.5} size={18} />
@@ -330,7 +330,7 @@ export default function ProductDetail({ params }: { params: { id: string } }) {
         {related.length > 0 && (
           <div>
             <h2 style={{ fontSize: 18, fontWeight: 800, marginBottom: 16 }}>Related Products</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 20 }}>
+            <div className="related-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 20 }}>
               {related.map(p => <ProductCard key={p.id} product={p} />)}
             </div>
           </div>

@@ -23,7 +23,7 @@ export default function AccountDetails() {
         <h2 style={{ fontSize: 20, fontWeight: 800, margin: 0 }}>Personal Details</h2>
         <div className="sub" style={{ marginTop: 4 }}>Update your name, email, and profile information</div>
       </div>
-      <div className="card card-pad" style={{ maxWidth: 560 }}>
+      <div className="details-card card card-pad" style={{ maxWidth: 560 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 28, paddingBottom: 20, borderBottom: '1px solid var(--line)' }}>
           <div style={{
             width: 72, height: 72, borderRadius: '50%', background: 'var(--blue-100)', color: 'var(--blue-700)',

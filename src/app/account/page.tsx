@@ -47,13 +47,13 @@ export default function CustomerDashboard() {
         <h1 style={{ fontSize: 22, fontWeight: 800, margin: 0 }}>Hello, {firstName} 👋</h1>
         <div className="sub" style={{ marginTop: 4 }}>Welcome back to your VoltCore account.</div>
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16, marginBottom: 20 }}>
+      <div className="dash-kpi-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16, marginBottom: 20 }}>
         <KpiCard icon="cart"  iconBg="#EFF6FF" iconColor="var(--blue-600)" label="Orders"         value={String(orders.length)} spark={[2,3,2,4,3,5,4]} sparkColor="var(--c-blue)" />
         <KpiCard icon="heart" iconBg="#FFF1F2" iconColor="var(--c-red)"   label="Wishlist Items" value={String(wishlist.length)} spark={[3,4,5,4,6,7,8]} sparkColor="var(--c-red)" />
         <KpiCard icon="book"  iconBg="#F5F3FF" iconColor="var(--c-purple)" label="Courses"       value={String(courseCount)} spark={[1,2,2,3,3,4,4]} sparkColor="var(--c-purple)" />
         <KpiCard icon="star"  iconBg="#FFF7ED" iconColor="var(--c-orange)" label="Reward Points" value="840" spark={[200,300,400,500,600,720,840]} sparkColor="var(--c-orange)" />
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 16, marginBottom: 16 }}>
+      <div className="dash-bottom-grid" style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 16, marginBottom: 16 }}>
         <div className="card card-pad">
           <CardHead title="Recent Orders" right={<Link href="/account/orders" className="link" style={{ fontSize: 13 }}>View all</Link>} />
           {loading ? (
@@ -61,19 +61,21 @@ export default function CustomerDashboard() {
           ) : orders.length === 0 ? (
             <div className="sub" style={{ textAlign: 'center', padding: '20px 0' }}>No orders yet</div>
           ) : (
-            <table className="tbl">
-              <thead><tr><th>Order</th><th>Items</th><th>Total</th><th>Status</th></tr></thead>
-              <tbody>
-                {orders.map(o => (
-                  <tr key={o.id}>
-                    <td className="mono" style={{ fontWeight: 600, fontSize: 13 }}>#{o.id}</td>
-                    <td className="sub" style={{ fontSize: 13 }}>{o.item_count ?? 1} item{(o.item_count ?? 1) > 1 ? 's' : ''}</td>
-                    <td style={{ fontWeight: 700 }}>{money(o.amount)}</td>
-                    <td><Pill status={o.status as 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled'} /></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <div className="tbl-wrap">
+              <table className="tbl">
+                <thead><tr><th>Order</th><th>Items</th><th>Total</th><th>Status</th></tr></thead>
+                <tbody>
+                  {orders.map(o => (
+                    <tr key={o.id}>
+                      <td className="mono" style={{ fontWeight: 600, fontSize: 13 }}>#{o.id}</td>
+                      <td className="sub" style={{ fontSize: 13 }}>{o.item_count ?? 1} item{(o.item_count ?? 1) > 1 ? 's' : ''}</td>
+                      <td style={{ fontWeight: 700 }}>{money(o.amount)}</td>
+                      <td><Pill status={o.status as 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled'} /></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
         <div className="card card-pad">

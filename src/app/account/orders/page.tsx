@@ -38,7 +38,7 @@ export default function CustomerOrders() {
         <h2 style={{ fontSize: 20, fontWeight: 800, margin: 0 }}>My Orders</h2>
         <div className="sub" style={{ marginTop: 4 }}>Track and manage your purchases</div>
       </div>
-      <div className="row gap8" style={{ marginBottom: 16, flexWrap: 'wrap' }}>
+      <div className="orders-tab-bar row gap8" style={{ marginBottom: 16, flexWrap: 'wrap' }}>
         {tabs.map(t => (
           <button key={t} onClick={() => setTab(t)} className="btn btn-sm" style={{
             background: tab === t ? 'var(--blue-600)' : 'var(--surface-2)',

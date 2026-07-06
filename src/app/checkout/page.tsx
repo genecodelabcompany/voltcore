@@ -1,393 +1,282 @@
 'use client';
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { StoreShell } from '@/components/shells/store-shell';
 import { OrderSummary } from '@/components/order-summary';
 import { Icon } from '@/components/icon';
 import { useStore } from '@/context/store-context';
 import { money } from '@/lib/utils';
+import { useUser } from '@clerk/nextjs';
 import type { Product } from '@/lib/types';
-
-declare global {
-  interface Window {
-    PaystackPop?: any;
-  }
-}
-
-const STEPS = ['Shipping', 'Payment', 'Confirmation'];
-
-function StepIndicator({ step }: { step: number }) {
-  return (
-    <div className="row gap0" style={{ justifyContent: 'center', marginBottom: 32 }}>
-      {STEPS.map((s, i) => (
-        <div key={s} className="row gap0" style={{ alignItems: 'center' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
-            <div style={{
-              width: 32, height: 32, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              background: i < step ? 'var(--green)' : i === step ? 'var(--blue-600)' : 'var(--line)',
-              color: i <= step ? '#fff' : 'var(--muted)', fontWeight: 700, fontSize: 14,
-            }}>
-              {i < step ? <Icon name="check" size={14} /> : i + 1}
-            </div>
-            <span style={{ fontSize: 12, fontWeight: i === step ? 700 : 400, color: i === step ? 'var(--blue-600)' : 'var(--muted)' }}>{s}</span>
-          </div>
-          {i < STEPS.length - 1 && (
-            <div style={{ width: 80, height: 2, background: i < step ? 'var(--green)' : 'var(--line)', marginBottom: 20, margin: '0 8px 20px' }} />
-          )}
-        </div>
-      ))}
-    </div>
-  );
-}
 
 export default function CheckoutPage() {
   const { cart, clearCart } = useStore();
-  const [step, setStep] = useState(0);
-  const [createdOrderId, setCreatedOrderId] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [loadingText, setLoadingText] = useState('');
+  const { user, isSignedIn } = useUser();
+  const router = useRouter();
   const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [step, setStep] = useState<'info' | 'shipping' | 'payment' | 'confirm'>('info');
+  const [processing, setProcessing] = useState(false);
+  const [error, setError] = useState('');
 
-  // Form states
-  const [firstName, setFirstName] = useState('Kwame');
-  const [lastName, setLastName] = useState('Mensah');
-  const [email, setEmail] = useState('kwame.mensah@mail.com');
-  const [phone, setPhone] = useState('+233 50 123 4567');
-  const [address, setAddress] = useState('House 12, Spintex Road');
-  const [city, setCity] = useState('East Legon, Accra');
-  const [notes, setNotes] = useState('');
-  const [shippingMethod, setShippingMethod] = useState<'standard' | 'express' | 'pickup'>('standard');
-  const [paymentMethod, setPaymentMethod] = useState<'paystack' | 'momo' | 'vodafone'>('paystack');
+  // Form state
+  const [email, setEmail] = useState(user?.primaryEmailAddress?.emailAddress || '');
+  const [firstName, setFirstName] = useState(user?.firstName || '');
+  const [lastName, setLastName] = useState(user?.lastName || '');
+  const [phone, setPhone] = useState(user?.primaryPhoneNumber?.phoneNumber || '');
+  const [address, setAddress] = useState('');
+  const [city, setCity] = useState('Accra');
+  const [region, setRegion] = useState('Greater Accra');
+  const [delivery, setDelivery] = useState('standard');
+  const [paymentMethod, setPaymentMethod] = useState('card');
 
-  const [total, setTotal] = useState(0);
-
-  // Fetch all products for cart lookups
   useEffect(() => {
+    if (cart.length === 0) { setLoading(false); return; }
     fetch('/api/products?limit=500')
       .then(r => r.json())
-      .then(data => setProducts(data.products ?? []))
-      .catch(() => {});
-  }, []);
+      .then(data => {
+        const all: Product[] = data.products ?? [];
+        setProducts(all.filter(p => cart.some(c => c.id === p.id)));
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, [cart]);
 
-  // Load Paystack Inline JS
-  const [paystackReady, setPaystackReady] = useState(false);
-  useEffect(() => {
-    const script = document.createElement('script');
-    script.src = 'https://js.paystack.co/v1/inline.js';
-    script.async = true;
-    script.onload = () => setPaystackReady(true);
-    document.body.appendChild(script);
-    return () => {
-      document.body.removeChild(script);
-    };
-  }, []);
+  const cartItems = cart.map(c => {
+    const p = products.find(pr => pr.id === c.id);
+    return { ...c, product: p };
+  }).filter(c => c.product);
 
-  const productMap = new Map(products.map(p => [p.id, p]));
+  const subtotal = cartItems.reduce((s, c) => s + (c.product?.price ?? 0) * c.qty, 0);
+  const shipping = delivery === 'express' ? 75 : subtotal >= 500 ? 0 : 25;
+  const total = subtotal + shipping;
 
-  const subtotal = cart.reduce((s, item) => {
-    const p = productMap.get(item.id);
-    return s + (p ? p.price * item.qty : 0);
-  }, 0);
-
-  const shippingFee = shippingMethod === 'express'
-    ? 75
-    : shippingMethod === 'pickup'
-    ? 0
-    : (subtotal >= 500 ? 0 : 25);
-
-  const handlePayNow = async () => {
-    if (cart.length === 0) {
-      alert('Your cart is empty.');
-      return;
-    }
-
-    if (!paystackReady || !window.PaystackPop) {
-      alert('Paystack SDK is still loading. Please try again in a moment.');
-      return;
-    }
-
-    setLoading(true);
-    setLoadingText('Initializing order...');
-
+  const handlePlaceOrder = async () => {
+    setProcessing(true);
+    setError('');
     try {
-      // 1. Map cart items for database using fetched products
-      const items = cart.map(item => {
-        const p = productMap.get(item.id);
-        return {
-          product_id: item.id,
-          name: p ? p.name : 'Unknown Product',
-          price: p ? p.price : 0,
-          qty: item.qty,
-        };
-      });
-
-      // 2. Create pending order in DB
-      const orderRes = await fetch('/api/orders', {
+      const res = await fetch('/api/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          items: cartItems.map(c => ({ product_id: c.id, qty: c.qty, price: c.product!.price })),
+          subtotal,
+          shipping,
+          total,
+          delivery_method: delivery,
+          payment_method: paymentMethod,
+          shipping_address: `${address}, ${city}, ${region}`,
           customer_name: `${firstName} ${lastName}`,
           customer_email: email,
           customer_phone: phone,
-          address,
-          city,
-          amount: total,
-          payment_method: paymentMethod,
-          shipping_method: shippingMethod,
-          notes: notes || null,
-          items,
         }),
       });
-
-      if (!orderRes.ok) {
-        const errData = await orderRes.json().catch(() => ({}));
-        throw new Error(errData.error || 'Failed to create order in database');
-      }
-
-      const { id: orderId } = await orderRes.json();
-      setCreatedOrderId(orderId);
-
-      setLoadingText('Initializing payment session...');
-
-      // 3. Initialize Paystack Transaction
-      const initRes = await fetch('/api/paystack/initialize', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email,
-          amount: total,
-          metadata: {
-            order_id: orderId,
-            custom_fields: [
-              {
-                display_name: 'Order ID',
-                variable_name: 'order_id',
-                value: orderId,
-              },
-            ],
-          },
-        }),
-      });
-
-      if (!initRes.ok) {
-        throw new Error('Failed to initialize payment session with Paystack');
-      }
-
-      const { reference, access_code } = await initRes.json();
-
-      setLoading(false);
-
-      // 4. Open Paystack Modal
-      const handler = window.PaystackPop.setup({
-        key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || 'pk_live_4330e872e8282759dc0af2c0f68224a165044645',
-        email,
-        amount: Math.round(total * 100),
-        currency: 'GHS',
-        ref: reference,
-        access_code: access_code,
-        callback: function (response: any) {
-          (async () => {
-            setLoading(true);
-            setLoadingText('Verifying payment status...');
-            try {
-              const verifyRes = await fetch('/api/paystack/verify', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  reference: response.reference,
-                  order_id: orderId,
-                }),
-              });
-              if (!verifyRes.ok) throw new Error('Payment verification failed');
-              const verifyData = await verifyRes.json();
-              if (verifyData.verified) {
-                setLoadingText('Sending confirmation email...');
-                await fetch('/api/email/order-confirmation', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    order_id: orderId,
-                    customer_name: `${firstName} ${lastName}`,
-                    customer_email: email,
-                    items,
-                    amount: total,
-                    shipping_method: shippingMethod,
-                  }),
-                });
-                setLoading(false);
-                setStep(2);
-              } else {
-                setLoading(false);
-                alert('Payment could not be verified by the server. Please contact support.');
-              }
-            } catch (err) {
-              console.error(err);
-              setLoading(false);
-              alert('Error completing payment verification. Please contact support.');
-            }
-          })();
-        },
-        onClose: function () {
-          alert('Checkout cancelled. You can try again when you are ready.');
-        },
-      });
-
-      handler.openIframe();
-    } catch (err: any) {
-      console.error(err);
-      setLoading(false);
-      alert(err.message || 'An error occurred during checkout.');
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Order failed');
+      clearCart();
+      router.push(`/account/orders`);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Something went wrong');
+    } finally {
+      setProcessing(false);
     }
   };
 
+  if (loading) return (
+    <StoreShell>
+      <div style={{ textAlign: 'center', padding: '80px 20px' }}><div className="sub">Loading checkout…</div></div>
+    </StoreShell>
+  );
+
+  if (cartItems.length === 0) {
+    router.push('/cart');
+    return null;
+  }
+
+  const steps = [
+    { key: 'info', label: 'Contact Info' },
+    { key: 'shipping', label: 'Shipping' },
+    { key: 'payment', label: 'Payment' },
+    { key: 'confirm', label: 'Confirm' },
+  ];
+
   return (
     <StoreShell>
-      <div className="page-container" style={{ maxWidth: 1000, position: 'relative' }}>
-        {loading && (
-          <div style={{
-            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-            background: 'rgba(15, 31, 61, 0.7)', backdropFilter: 'blur(8px)',
-            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-            zIndex: 9999, color: '#fff', gap: 16
-          }}>
-            <div style={{
-              width: 50, height: 50, border: '4px solid rgba(255,255,255,0.2)',
-              borderTopColor: 'var(--blue-500)', borderRadius: '50%',
-              animation: 'spin 1s linear infinite'
-            }} />
-            <div style={{ fontWeight: 700, fontSize: 16 }}>{loadingText}</div>
-            <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
-          </div>
-        )}
+      <div style={{ maxWidth: 1100, margin: '0 auto', padding: '40px 24px' }}>
+        <h1 style={{ fontSize: 24, fontWeight: 900, marginBottom: 28 }}>Checkout</h1>
 
-        <h1 style={{ fontSize: 22, fontWeight: 900, marginBottom: 28 }}>Checkout</h1>
-        <StepIndicator step={step} />
+        {/* Steps indicator */}
+        <div className="checkout-steps row gap0" style={{ marginBottom: 32, borderBottom: '1px solid var(--line)', paddingBottom: 16 }}>
+          {steps.map((s, i) => {
+            const active = step === s.key;
+            const done = steps.findIndex(x => x.key === step) > i;
+            return (
+              <div key={s.key} className="row gap8" style={{ alignItems: 'center', flex: 1 }}>
+                <div style={{
+                  width: 32, height: 32, borderRadius: '50%',
+                  background: active ? 'var(--blue-600)' : done ? 'var(--green)' : 'var(--surface-2)',
+                  color: active || done ? '#fff' : 'var(--muted)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontWeight: 700, fontSize: 13,
+                }}>{done ? '✓' : i + 1}</div>
+                <span style={{ fontWeight: active ? 700 : 500, fontSize: 13, color: active ? 'var(--ink)' : 'var(--muted)' }}>
+                  {s.label}
+                </span>
+              </div>
+            );
+          })}
+        </div>
 
-        {step === 0 && (
-          <div className="checkout-layout" style={{ alignItems: 'flex-start' }}>
-            <div className="card card-pad">
-              <h2 style={{ fontSize: 18, fontWeight: 800, marginBottom: 20 }}>Delivery Information</h2>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 6 }}>First Name</label>
-                  <input className="input" value={firstName} onChange={e => setFirstName(e.target.value)} style={{ width: '100%' }} required />
-                </div>
-                <div>
-                  <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 6 }}>Last Name</label>
-                  <input className="input" value={lastName} onChange={e => setLastName(e.target.value)} style={{ width: '100%' }} required />
-                </div>
+        <div className="checkout-grid" style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 24 }}>
+          <div className="card card-pad">
+            {error && (
+              <div style={{ marginBottom: 16, background: '#FEF2F2', color: 'var(--c-red)', borderRadius: 10, padding: '12px 16px', fontSize: 14 }}>
+                {error}
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginTop: 14 }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 6 }}>Email Address</label>
-                  <input className="input" type="email" value={email} onChange={e => setEmail(e.target.value)} style={{ width: '100%' }} required />
-                </div>
-                <div>
-                  <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 6 }}>Phone Number</label>
-                  <input className="input" type="tel" value={phone} onChange={e => setPhone(e.target.value)} style={{ width: '100%' }} required />
-                </div>
-              </div>
-              <div style={{ marginTop: 14 }}>
-                <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 6 }}>Delivery Address</label>
-                <input className="input" value={address} onChange={e => setAddress(e.target.value)} style={{ width: '100%' }} required />
-              </div>
-              <div style={{ marginTop: 14 }}>
-                <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 6 }}>City / Area</label>
-                <input className="input" value={city} onChange={e => setCity(e.target.value)} style={{ width: '100%' }} required />
-              </div>
-              <div style={{ marginTop: 14 }}>
-                <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 6 }}>Order Notes (Optional)</label>
-                <textarea className="input" value={notes} onChange={e => setNotes(e.target.value)} style={{ width: '100%', minHeight: 80, padding: 10 }} placeholder="Notes about your order, e.g. special delivery instructions." />
-              </div>
-              <div style={{ marginTop: 14 }}>
-                <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 6 }}>Delivery Option</label>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                  {[
-                    ['standard', 'Standard Delivery (2–3 days)', subtotal >= 500 ? 'Free' : 'GHS 25.00'],
-                    ['express', 'Express Delivery (Same day, Accra)', 'GHS 75.00'],
-                    ['pickup', 'Pickup at Circle, Accra', 'Free'],
-                  ].map(([val, label, price]) => (
-                    <label key={val} className="row gap12" style={{
-                      padding: '14px 16px', border: `1px solid ${shippingMethod === val ? 'var(--blue-600)' : 'var(--line)'}`,
-                      borderRadius: 'var(--r)', cursor: 'pointer', fontSize: 14,
-                      background: shippingMethod === val ? 'var(--blue-50)' : undefined,
-                    }}>
-                      <input type="radio" name="delivery" checked={shippingMethod === val} onChange={() => setShippingMethod(val as any)} />
-                      <div className="grow" style={{ fontWeight: shippingMethod === val ? 600 : 400 }}>{label}</div>
-                      <span style={{ fontWeight: 700 }}>{price}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-              <button className="btn btn-primary" style={{ marginTop: 24, width: '100%' }}
-                onClick={() => {
-                  if (!firstName || !lastName || !email || !phone || !address || !city) {
-                    alert('Please fill out all required shipping fields.');
-                    return;
-                  }
-                  setStep(1);
-                }}>
-                Continue to Payment <Icon name="arrowR" size={16} />
-              </button>
-            </div>
-            <OrderSummary shippingFee={shippingFee} onTotalChange={setTotal} />
-          </div>
-        )}
+            )}
 
-        {step === 1 && (
-          <div className="checkout-layout" style={{ alignItems: 'flex-start' }}>
-            <div className="card card-pad">
-              <h2 style={{ fontSize: 18, fontWeight: 800, marginBottom: 20 }}>Payment Method</h2>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 20 }}>
+            {step === 'info' && (
+              <div>
+                <h3 style={{ fontSize: 18, fontWeight: 800, marginBottom: 20 }}>Contact Information</h3>
+                <div style={{ marginBottom: 14 }}>
+                  <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 6 }}>Email *</label>
+                  <input className="input" type="email" value={email} onChange={e => setEmail(e.target.value)} style={{ width: '100%', maxWidth: '100%' }} />
+                </div>
+                <div className="row gap12">
+                  <div style={{ flex: 1, marginBottom: 14 }}>
+                    <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 6 }}>First Name *</label>
+                    <input className="input" value={firstName} onChange={e => setFirstName(e.target.value)} style={{ width: '100%', maxWidth: '100%' }} />
+                  </div>
+                  <div style={{ flex: 1, marginBottom: 14 }}>
+                    <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 6 }}>Last Name *</label>
+                    <input className="input" value={lastName} onChange={e => setLastName(e.target.value)} style={{ width: '100%', maxWidth: '100%' }} />
+                  </div>
+                </div>
+                <div style={{ marginBottom: 20 }}>
+                  <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 6 }}>Phone Number *</label>
+                  <input className="input" type="tel" value={phone} onChange={e => setPhone(e.target.value)} style={{ width: '100%', maxWidth: '100%' }} />
+                </div>
+                <button className="btn btn-primary" onClick={() => setStep('shipping')}>Continue to Shipping</button>
+              </div>
+            )}
+
+            {step === 'shipping' && (
+              <div>
+                <h3 style={{ fontSize: 18, fontWeight: 800, marginBottom: 20 }}>Shipping Address</h3>
+                <div style={{ marginBottom: 14 }}>
+                  <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 6 }}>Street Address *</label>
+                  <input className="input" value={address} onChange={e => setAddress(e.target.value)} placeholder="Building, street, landmark" style={{ width: '100%', maxWidth: '100%' }} />
+                </div>
+                <div className="row gap12">
+                  <div style={{ flex: 1, marginBottom: 14 }}>
+                    <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 6 }}>City *</label>
+                    <input className="input" value={city} onChange={e => setCity(e.target.value)} style={{ width: '100%', maxWidth: '100%' }} />
+                  </div>
+                  <div style={{ flex: 1, marginBottom: 14 }}>
+                    <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 6 }}>Region *</label>
+                    <select className="input" value={region} onChange={e => setRegion(e.target.value)} style={{ width: '100%', maxWidth: '100%' }}>
+                      <option>Greater Accra</option>
+                      <option>Ashanti</option>
+                      <option>Eastern</option>
+                      <option>Western</option>
+                      <option>Central</option>
+                      <option>Volta</option>
+                      <option>Northern</option>
+                      <option>Upper East</option>
+                      <option>Upper West</option>
+                      <option>Bono</option>
+                      <option>Ahafo</option>
+                      <option>Bono East</option>
+                      <option>Oti</option>
+                      <option>North East</option>
+                      <option>Savannah</option>
+                      <option>Western North</option>
+                    </select>
+                  </div>
+                </div>
+                <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 14, marginTop: 8 }}>Delivery Method</h3>
                 {[
-                  ['paystack', 'Card / Online / MoMo', 'Visa, Mastercard, Mobile Money via Paystack'],
-                ].map(([val, label, sub]) => (
-                  <label key={val} className="row gap14" style={{
-                    padding: '14px 16px', border: `1px solid ${paymentMethod === val ? 'var(--blue-600)' : 'var(--line)'}`,
-                    borderRadius: 'var(--r)', cursor: 'pointer', background: paymentMethod === val ? 'var(--blue-50)' : undefined,
-                  }}>
-                    <input type="radio" name="pay" value={val} checked={paymentMethod === val} onChange={() => setPaymentMethod(val as any)} />
-                    <div>
-                      <div style={{ fontWeight: 700, fontSize: 14 }}>{label}</div>
-                      <div className="sub" style={{ fontSize: 12, marginTop: 2 }}>{sub}</div>
+                  { key: 'standard', label: 'Standard Delivery', desc: subtotal >= 500 ? 'Free' : 'GHS 25', time: '2–3 business days' },
+                  { key: 'express', label: 'Express Delivery', desc: 'GHS 75', time: 'Same day (Accra)' },
+                ].map(d => (
+                  <div key={d.key} className="row gap12" style={{
+                    padding: '14px 16px', borderRadius: 'var(--r)', border: `2px solid ${delivery === d.key ? 'var(--blue-600)' : 'var(--line)'}`,
+                    marginBottom: 10, cursor: 'pointer',
+                  }} onClick={() => setDelivery(d.key)}>
+                    <input type="radio" checked={delivery === d.key} readOnly />
+                    <div className="grow">
+                      <div style={{ fontWeight: 700, fontSize: 14 }}>{d.label}</div>
+                      <div className="sub" style={{ fontSize: 12 }}>{d.time}</div>
                     </div>
-                  </label>
+                    <div style={{ fontWeight: 800, color: 'var(--blue-600)' }}>{d.desc}</div>
+                  </div>
                 ))}
+                <div className="row gap12" style={{ marginTop: 16 }}>
+                  <button className="btn btn-ghost" onClick={() => setStep('info')}>Back</button>
+                  <button className="btn btn-primary" onClick={() => setStep('payment')}>Continue to Payment</button>
+                </div>
               </div>
-              <div style={{ background: 'var(--blue-50)', border: '1px solid var(--blue-100)', borderRadius: 'var(--r)', padding: '14px 16px', fontSize: 13.5, color: 'var(--blue-700)', marginBottom: 20 }}>
-                <Icon name="shield" size={14} style={{ marginRight: 8 }} />
-                Your payment is processed securely by Paystack. VoltCore does not store card details.
-              </div>
-              <div className="row gap10">
-                <button className="btn btn-ghost" onClick={() => setStep(0)} style={{ border: '1px solid var(--line)' }}>Back</button>
-                <button className="btn btn-primary grow" onClick={handlePayNow}>
-                  <Icon name="card" size={16} style={{ marginRight: 8 }} /> Pay {money(total)} Now
-                </button>
-              </div>
-            </div>
-            <OrderSummary shippingFee={shippingFee} onTotalChange={setTotal} />
-          </div>
-        )}
+            )}
 
-        {step === 2 && (
-          <div className="card card-pad" style={{ textAlign: 'center', padding: '40px 20px', maxWidth: 600, margin: '0 auto' }}>
-            <div style={{
-              width: 80, height: 80, borderRadius: '50%', background: 'var(--green-bg)', color: 'var(--green)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px',
-            }}>
-              <Icon name="check" size={36} color="var(--green)" />
-            </div>
-            <h2 style={{ fontSize: 22, fontWeight: 900, marginBottom: 8 }}>Order Confirmed!</h2>
-            <p className="sub" style={{ fontSize: 15, lineHeight: 1.6, marginBottom: 8 }}>
-              Thank you for your order, <strong>{firstName}</strong>. We have received your payment and sent a confirmation email to <strong>{email}</strong>.
-            </p>
-            <p style={{ fontWeight: 700, color: 'var(--blue-600)', marginBottom: 28, fontSize: 16 }}>Order ID: #{createdOrderId}</p>
-            <div className="row gap10" style={{ justifyContent: 'center' }}>
-              <a href="/account/orders" className="btn btn-primary" onClick={() => clearCart()}>View My Orders</a>
-              <a href="/shop" className="btn btn-ghost" style={{ border: '1px solid var(--line)' }} onClick={() => clearCart()}>Continue Shopping</a>
-            </div>
+            {step === 'payment' && (
+              <div>
+                <h3 style={{ fontSize: 18, fontWeight: 800, marginBottom: 20 }}>Payment Method</h3>
+                {[
+                  { key: 'card', label: 'Card Payment', desc: 'Visa, Mastercard, Verve' },
+                  { key: 'momo', label: 'Mobile Money', desc: 'MTN MoMo, Vodafone Cash, AirtelTigo' },
+                  { key: 'paystack', label: 'Paystack', desc: 'Secure online payments' },
+                ].map(p => (
+                  <div key={p.key} className="row gap12" style={{
+                    padding: '14px 16px', borderRadius: 'var(--r)', border: `2px solid ${paymentMethod === p.key ? 'var(--blue-600)' : 'var(--line)'}`,
+                    marginBottom: 10, cursor: 'pointer',
+                  }} onClick={() => setPaymentMethod(p.key)}>
+                    <input type="radio" checked={paymentMethod === p.key} readOnly />
+                    <div className="grow">
+                      <div style={{ fontWeight: 700, fontSize: 14 }}>{p.label}</div>
+                      <div className="sub" style={{ fontSize: 12 }}>{p.desc}</div>
+                    </div>
+                  </div>
+                ))}
+                <div className="row gap12" style={{ marginTop: 16 }}>
+                  <button className="btn btn-ghost" onClick={() => setStep('shipping')}>Back</button>
+                  <button className="btn btn-primary" onClick={() => setStep('confirm')}>Review Order</button>
+                </div>
+              </div>
+            )}
+
+            {step === 'confirm' && (
+              <div>
+                <h3 style={{ fontSize: 18, fontWeight: 800, marginBottom: 20 }}>Order Summary</h3>
+                <div style={{ marginBottom: 20 }}>
+                  <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 10 }}>Contact</div>
+                  <div className="sub" style={{ fontSize: 13 }}>{email} · {phone}</div>
+                </div>
+                <div style={{ marginBottom: 20 }}>
+                  <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 10 }}>Ship to</div>
+                  <div className="sub" style={{ fontSize: 13 }}>{firstName} {lastName}<br />{address}, {city}, {region}</div>
+                </div>
+                <div style={{ marginBottom: 20 }}>
+                  <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 10 }}>Delivery</div>
+                  <div className="sub" style={{ fontSize: 13, textTransform: 'capitalize' }}>{delivery}</div>
+                </div>
+                <div style={{ marginBottom: 20 }}>
+                  <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 10 }}>Payment</div>
+                  <div className="sub" style={{ fontSize: 13, textTransform: 'capitalize' }}>{paymentMethod}</div>
+                </div>
+                <div className="row gap12">
+                  <button className="btn btn-ghost" onClick={() => setStep('payment')}>Back</button>
+                  <button className="btn btn-primary" onClick={handlePlaceOrder} disabled={processing}>
+                    {processing ? '⏳ Processing…' : `Place Order — ${money(total)}`}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
-        )}
+
+          <div>
+            <OrderSummary shippingFee={shipping} />
+          </div>
+        </div>
       </div>
     </StoreShell>
   );

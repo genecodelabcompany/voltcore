@@ -1116,3 +1116,99 @@ input, select, textarea { font-family: inherit; }
 }
 
 /* ---------- Product detail review meta responsive ---------- */
+
+/* ---------- Account sidebar mobile ---------- */
+@media (max-width: 767px) {
+  .account-sidebar-desktop { display: none !important; }
+  .account-mobile-header { display: flex !important; }
+  .account-layout-wrap { flex-direction: column !important; padding: 16px !important; gap: 16px !important; }
+}
+
+/* ---------- Login page mobile ---------- */
+@media (max-width: 767px) {
+  .login-split { grid-template-columns: 1fr !important; }
+  .login-brand-panel { display: none !important; }
+  .login-form-panel { padding: 24px 16px !important; }
+}
+
+/* ---------- Services hero mobile ---------- */
+@media (max-width: 767px) {
+  .services-hero-section { padding: 40px 20px !important; }
+  .services-hero-section h1 { font-size: 26px !important; }
+  .services-hero-section p { font-size: 14px !important; }
+}
+
+/* ---------- Courses hero mobile ---------- */
+@media (max-width: 767px) {
+  .courses-hero-section { padding: 40px 20px !important; }
+  .courses-hero-section h1 { font-size: 26px !important; }
+  .courses-hero-section p { font-size: 14px !important; }
+  .courses-hero-stats { flex-direction: column !important; gap: 10px !important; }
+  .courses-hero-stats > div { width: 100% !important; }
+}
+
+/* ---------- Product detail image gallery mobile ---------- */
+@media (max-width: 767px) {
+  .prod-thumb-grid { grid-template-columns: repeat(4, 1fr) !important; gap: 6px !important; }
+  .prod-thumb-grid > div { padding: 8px !important; }
+}
+
+/* ---------- Product detail features grid mobile ---------- */
+@media (max-width: 767px) {
+  .prod-features-grid { grid-template-columns: 1fr !important; gap: 8px !important; }
+}
+
+/* ---------- Product detail tabs mobile ---------- */
+@media (max-width: 767px) {
+  .prod-tab-bar { overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+  .prod-tab-bar::-webkit-scrollbar { display: none; }
+  .prod-tab-btn { white-space: nowrap; font-size: 13px; padding: 10px 14px; }
+}
+
+/* ---------- Product detail reviews mobile ---------- */
+@media (max-width: 767px) {
+  .prod-review-summary { flex-direction: column !important; gap: 16px !important; }
+}
+
+/* ---------- Wishlist header mobile ---------- */
+@media (max-width: 767px) {
+  .wishlist-header { flex-direction: column !important; gap: 8px !important; align-items: flex-start !important; }
+}
+
+/* ---------- Account dashboard KPI grid mobile ---------- */
+@media (max-width: 767px) {
+  .dash-kpi-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 12px !important; }
+}
+
+/* ---------- Account dashboard bottom grid mobile ---------- */
+@media (max-width: 767px) {
+  .dash-bottom-grid { grid-template-columns: 1fr !important; gap: 16px !important; }
+}
+
+/* ---------- Account orders tabs mobile ---------- */
+@media (max-width: 767px) {
+  .orders-tab-bar { overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+  .orders-tab-bar::-webkit-scrollbar { display: none; }
+}
+
+/* ---------- Account support header mobile ---------- */
+@media (max-width: 767px) {
+  .support-header { flex-direction: column !important; gap: 12px !important; align-items: flex-start !important; }
+  .support-header .btn { width: 100% !important; }
+}
+
+/* ---------- Account support ticket item mobile ---------- */
+@media (max-width: 767px) {
+  .ticket-item { flex-direction: column !important; gap: 8px !important; align-items: flex-start !important; }
+}
+
+/* ---------- Account addresses header mobile ---------- */
+@media (max-width: 767px) {
+  .addresses-header { flex-direction: column !important; gap: 12px !important; align-items: flex-start !important; }
+  .addresses-header .btn { width: 100% !important; }
+}
+
+/* ---------- Account details card mobile ---------- */
+@media (max-width: 767px) {
+  .details-card { max-width: 100% !important; }
+}

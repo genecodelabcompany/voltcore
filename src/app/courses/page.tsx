@@ -31,7 +31,7 @@ export default function CourseCatalog() {
   return (
     <StoreShell>
       {/* Hero */}
-      <div style={{
+      <div className="courses-hero-section" style={{
         background: 'linear-gradient(135deg, var(--navy) 0%, #1a3560 100%)',
         padding: '60px 40px', color: '#fff', textAlign: 'center',
       }}>
@@ -47,7 +47,7 @@ export default function CourseCatalog() {
           Practical, project-based courses taught by Ghana's leading electronics engineers.
           Learn at your own pace, earn certificates.
         </p>
-        <div className="row gap12" style={{ justifyContent: 'center' }}>
+        <div className="courses-hero-stats row gap12" style={{ justifyContent: 'center' }}>
           {[['500+', 'Students enrolled'], ['6', 'Expert-led courses'], ['100%', 'Project-based']].map(([v, l]) => (
             <div key={l} style={{ textAlign: 'center', background: 'rgba(255,255,255,.1)', borderRadius: 12, padding: '16px 24px' }}>
               <div style={{ fontSize: 24, fontWeight: 900 }}>{v}</div>
@@ -63,7 +63,7 @@ export default function CourseCatalog() {
         {loading ? (
           <div className="sub" style={{ textAlign: 'center', padding: '48px 0' }}>Loading courses…</div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 24 }}>
+          <div className="courses-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 24 }}>
             {courses.map((c, i) => (
               <div key={c.id} className="card" style={{ overflow: 'hidden' }}>
                 <div style={{

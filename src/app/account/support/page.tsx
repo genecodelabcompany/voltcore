@@ -66,7 +66,7 @@ export default function SupportTickets() {
 
   return (
     <div>
-      <div className="row between" style={{ marginBottom: 20 }}>
+      <div className="support-header row between" style={{ marginBottom: 20 }}>
         <div>
           <h2 style={{ fontSize: 20, fontWeight: 800, margin: 0 }}>Support Tickets</h2>
           <div className="sub" style={{ marginTop: 4 }}>Get help from the VoltCore engineering team</div>
@@ -85,11 +85,11 @@ export default function SupportTickets() {
           )}
           <div style={{ marginBottom: 14 }}>
             <label style={{ display: 'block', fontSize: 13.5, fontWeight: 600, marginBottom: 6 }}>Subject *</label>
-            <input className="input" value={subject} onChange={e => setSubject(e.target.value)} placeholder="Briefly describe your issue…" style={{ maxWidth: 480, display: 'block' }} />
+            <input className="input" value={subject} onChange={e => setSubject(e.target.value)} placeholder="Briefly describe your issue…" style={{ maxWidth: '100%', display: 'block' }} />
           </div>
           <div style={{ marginBottom: 14 }}>
             <label style={{ display: 'block', fontSize: 13.5, fontWeight: 600, marginBottom: 6 }}>Category</label>
-            <select className="input" value={category} onChange={e => setCategory(e.target.value)} style={{ maxWidth: 240 }}>
+            <select className="input" value={category} onChange={e => setCategory(e.target.value)} style={{ maxWidth: '100%' }}>
               <option>Order Issue</option>
               <option>Technical Support</option>
               <option>Refund Request</option>
@@ -99,7 +99,7 @@ export default function SupportTickets() {
           </div>
           <div style={{ marginBottom: 16 }}>
             <label style={{ display: 'block', fontSize: 13.5, fontWeight: 600, marginBottom: 6 }}>Message *</label>
-            <textarea className="input" value={message} onChange={e => setMessage(e.target.value)} rows={5} placeholder="Describe your issue in detail…" style={{ maxWidth: 600, display: 'block', resize: 'vertical' }} />
+            <textarea className="input" value={message} onChange={e => setMessage(e.target.value)} rows={5} placeholder="Describe your issue in detail…" style={{ maxWidth: '100%', display: 'block', resize: 'vertical' }} />
           </div>
           <button className="btn btn-primary" onClick={handleSubmit} disabled={submitting}>
             {submitting ? 'Submitting…' : 'Submit Ticket'}
@@ -117,7 +117,7 @@ export default function SupportTickets() {
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {tickets.map(t => (
-            <div key={t.id} className="card card-pad row between" style={{ alignItems: 'center' }}>
+            <div key={t.id} className="ticket-item card card-pad row between" style={{ alignItems: 'center' }}>
               <div>
                 <div style={{ fontWeight: 700, fontSize: 14 }}>{t.subject}</div>
                 <div className="sub" style={{ fontSize: 12, marginTop: 4 }}>{t.category} · {fmt(t.created_at)}</div>

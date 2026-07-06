@@ -12,9 +12,9 @@ const feats = [
 
 export default function LoginPage() {
   return (
-    <div style={{ minHeight: '100vh', display: 'grid', gridTemplateColumns: '1.05fr 1fr' }}>
+    <div className="login-split" style={{ minHeight: '100vh', display: 'grid', gridTemplateColumns: '1.05fr 1fr' }}>
       {/* Brand panel */}
-      <div style={{
+      <div className="login-brand-panel" style={{
         background: 'linear-gradient(150deg,var(--navy),#143257)', color: '#fff',
         padding: '56px 64px', display: 'flex', flexDirection: 'column',
         justifyContent: 'space-between', position: 'relative', overflow: 'hidden',
@@ -66,7 +66,7 @@ export default function LoginPage() {
       </div>
 
       {/* Clerk sign-in panel */}
-      <div style={{
+      <div className="login-form-panel" style={{
         display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 40,
         background: '#fff',
       }}>

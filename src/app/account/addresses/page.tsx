@@ -21,7 +21,7 @@ export default function AccountAddresses() {
 
   return (
     <div>
-      <div className="row between" style={{ marginBottom: 20 }}>
+      <div className="addresses-header row between" style={{ marginBottom: 20 }}>
         <div>
           <h2 style={{ fontSize: 20, fontWeight: 800, margin: 0 }}>Delivery Addresses</h2>
           <div className="sub" style={{ marginTop: 4 }}>Manage your saved delivery locations</div>

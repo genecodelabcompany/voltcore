@@ -13,7 +13,7 @@ export default function SignInPage() {
       background: 'linear-gradient(150deg,#f7f8fa,#eef1f5)',
       padding: 20,
     }}>
-      <div style={{
+      <div className="login-card" style={{
         width: '100%', maxWidth: 440,
         background: '#fff', borderRadius: 16,
         boxShadow: '0 4px 24px rgba(0,0,0,.06)',

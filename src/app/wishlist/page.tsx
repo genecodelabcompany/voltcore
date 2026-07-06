@@ -30,7 +30,7 @@ export default function WishlistPage() {
   return (
     <StoreShell>
       <div style={{ maxWidth: 1100, margin: '0 auto', padding: '40px 24px' }}>
-        <div className="row between" style={{ marginBottom: 28 }}>
+        <div className="wishlist-header row between" style={{ marginBottom: 28 }}>
           <div>
             <h1 style={{ fontSize: 24, fontWeight: 900, margin: 0 }}>My Wishlist</h1>
             <div className="sub" style={{ marginTop: 4 }}>Items you've saved for later</div>
@@ -49,7 +49,7 @@ export default function WishlistPage() {
             <Link href="/shop" className="btn btn-primary">Browse Products</Link>
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 20 }}>
+          <div className="wishlist-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 20 }}>
             {products.map(p => (
               <ProductCard key={p.id} product={p} />
             ))}
