@@ -3,12 +3,11 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { KpiCard } from '@/components/kpi-card';
 import { Pill } from '@/components/pill';
-import { ProductThumb } from '@/components/product-thumb';
 import { Icon } from '@/components/icon';
 import { CardHead } from '@/components/card-head';
 import { money } from '@/lib/utils';
-
 import { useUser } from '@clerk/nextjs';
+import { useStore } from '@/context/store-context';
 
 interface Order {
   id: string; amount: number; status: string; created_at: string; item_count: number;
@@ -25,18 +24,21 @@ const quickActions = [
 
 export default function CustomerDashboard() {
   const { user } = useUser();
+  const { wishlist } = useStore();
   const firstName = user?.firstName || 'Customer';
   const [orders, setOrders] = useState<Order[]>([]);
+  const [courseCount, setCourseCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/orders?limit=4')
-      .then(r => r.json())
-      .then(data => {
-        setOrders(data.orders ?? []);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
+    Promise.all([
+      fetch('/api/orders?limit=4').then(r => r.json()),
+      fetch('/api/courses').then(r => r.json()),
+    ]).then(([ordersData, coursesData]) => {
+      setOrders(ordersData.orders ?? []);
+      setCourseCount((coursesData.courses ?? []).length);
+      setLoading(false);
+    }).catch(() => setLoading(false));
   }, []);
 
   return (
@@ -47,8 +49,8 @@ export default function CustomerDashboard() {
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16, marginBottom: 20 }}>
         <KpiCard icon="cart"  iconBg="#EFF6FF" iconColor="var(--blue-600)" label="Orders"         value={String(orders.length)} spark={[2,3,2,4,3,5,4]} sparkColor="var(--c-blue)" />
-        <KpiCard icon="heart" iconBg="#FFF1F2" iconColor="var(--c-red)"   label="Wishlist Items" value="7"   spark={[3,4,5,4,6,7,8]} sparkColor="var(--c-red)" />
-        <KpiCard icon="book"  iconBg="#F5F3FF" iconColor="var(--c-purple)" label="Courses"       value="3"   spark={[1,2,2,3,3,4,4]} sparkColor="var(--c-purple)" />
+        <KpiCard icon="heart" iconBg="#FFF1F2" iconColor="var(--c-red)"   label="Wishlist Items" value={String(wishlist.length)} spark={[3,4,5,4,6,7,8]} sparkColor="var(--c-red)" />
+        <KpiCard icon="book"  iconBg="#F5F3FF" iconColor="var(--c-purple)" label="Courses"       value={String(courseCount)} spark={[1,2,2,3,3,4,4]} sparkColor="var(--c-purple)" />
         <KpiCard icon="star"  iconBg="#FFF7ED" iconColor="var(--c-orange)" label="Reward Points" value="840" spark={[200,300,400,500,600,720,840]} sparkColor="var(--c-orange)" />
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 16, marginBottom: 16 }}>

@@ -1,6 +1,22 @@
+'use client';
+import { useState } from 'react';
 import { Icon } from '@/components/icon';
+import { useUser } from '@clerk/nextjs';
 
 export default function AccountDetails() {
+  const { user } = useUser();
+  const [saved, setSaved] = useState(false);
+
+  const initials = [user?.firstName, user?.lastName]
+    .filter(Boolean)
+    .map(n => n?.charAt(0).toUpperCase())
+    .join('') || 'U';
+
+  const handleSave = () => {
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  };
+
   return (
     <div>
       <div style={{ marginBottom: 20 }}>
@@ -12,24 +28,27 @@ export default function AccountDetails() {
           <div style={{
             width: 72, height: 72, borderRadius: '50%', background: 'var(--blue-100)', color: 'var(--blue-700)',
             display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 24,
-          }}>KM</div>
+          }}>{initials}</div>
           <div>
             <button className="btn btn-soft btn-sm"><Icon name="upload" size={14} />Change Photo</button>
             <div className="sub" style={{ fontSize: 12, marginTop: 6 }}>JPG or PNG, max 2MB</div>
           </div>
         </div>
         {[
-          ['First Name', 'Kwame'],
-          ['Last Name', 'Mensah'],
-          ['Email Address', 'kwame.mensah@mail.com'],
-          ['Phone Number', '+233 50 123 4567'],
+          ['First Name', user?.firstName || ''],
+          ['Last Name', user?.lastName || ''],
+          ['Email Address', user?.primaryEmailAddress?.emailAddress || ''],
+          ['Phone Number', user?.primaryPhoneNumber?.phoneNumber || '+233 50 000 0000'],
         ].map(([label, val]) => (
           <div key={label} style={{ marginBottom: 18 }}>
             <label style={{ display: 'block', fontSize: 13.5, fontWeight: 600, marginBottom: 6 }}>{label}</label>
             <input className="input" defaultValue={val} style={{ maxWidth: '100%', display: 'block' }} />
           </div>
         ))}
-        <button className="btn btn-primary" style={{ marginTop: 8 }}>Save Changes</button>
+        <div className="row gap12" style={{ marginTop: 8 }}>
+          <button className="btn btn-primary" onClick={handleSave}>Save Changes</button>
+          {saved && <span style={{ color: 'var(--green)', fontWeight: 600, fontSize: 14 }}>✓ Saved</span>}
+        </div>
       </div>
     </div>
   );

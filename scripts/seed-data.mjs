@@ -30,6 +30,17 @@ const db = createClient({
   authToken: env.TURSO_AUTH_TOKEN,
 });
 
+const categories = [
+  { id: 'arduino', name: 'Arduino', slug: 'arduino', color: '#00979D', icon: '🔵', sort_order: 1 },
+  { id: 'raspberry-pi', name: 'Raspberry Pi', slug: 'raspberry-pi', color: '#A22846', icon: '🍓', sort_order: 2 },
+  { id: 'sensors', name: 'Sensors & Modules', slug: 'sensors', color: '#6B21A8', icon: '📡', sort_order: 3 },
+  { id: 'tools', name: 'Tools & Equipment', slug: 'tools', color: '#D97706', icon: '🔧', sort_order: 4 },
+  { id: 'components', name: 'Components', slug: 'components', color: '#059669', icon: '⚡', sort_order: 5 },
+  { id: 'robotics', name: 'Robotics', slug: 'robotics', color: '#DC2626', icon: '🤖', sort_order: 6 },
+  { id: 'iot', name: 'IoT & Wireless', slug: 'iot', color: '#2563EB', icon: '📶', sort_order: 7 },
+  { id: 'power', name: 'Power & Batteries', slug: 'power', color: '#D97706', icon: '🔋', sort_order: 8 },
+];
+
 const courses = [
   { id: 'c1', title: 'Embedded Systems with Arduino', level: 'Beginner', lessons: 12, hours: 24, price: 299, instructor: 'Eng. Kwame Asante', glyph: 'board', cert: 1, description: 'Learn Arduino programming, sensors, and actuators from scratch.', status: 'published' },
   { id: 'c2', title: 'PCB Design Masterclass', level: 'Intermediate', lessons: 18, hours: 36, price: 499, instructor: 'Dr. Akosua Mensah', glyph: 'board', cert: 1, description: 'Design professional PCBs using KiCad and Altium.', status: 'published' },
@@ -58,6 +69,16 @@ const enrollments = [
 ];
 
 async function seed() {
+  console.log('📂 Seeding categories...');
+  for (const cat of categories) {
+    await db.execute({
+      sql: `INSERT OR IGNORE INTO categories (id, name, slug, color, icon, sort_order)
+            VALUES (?, ?, ?, ?, ?, ?)`,
+      args: [cat.id, cat.name, cat.slug, cat.color, cat.icon, cat.sort_order],
+    });
+  }
+  console.log(`   ${categories.length} categories seeded`);
+
   console.log('📚 Seeding courses...');
   for (const c of courses) {
     await db.execute({

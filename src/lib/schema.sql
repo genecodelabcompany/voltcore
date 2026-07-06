@@ -151,6 +151,32 @@ CREATE TABLE IF NOT EXISTS coupons (
   created_at   TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
+CREATE TABLE IF NOT EXISTS addresses (
+  id         TEXT PRIMARY KEY,
+  user_id    TEXT NOT NULL DEFAULT '',
+  label      TEXT NOT NULL DEFAULT 'Home',
+  line1      TEXT NOT NULL DEFAULT '',
+  line2      TEXT NOT NULL DEFAULT '',
+  city       TEXT NOT NULL DEFAULT '',
+  region     TEXT NOT NULL DEFAULT '',
+  country    TEXT NOT NULL DEFAULT 'Ghana',
+  phone      TEXT NOT NULL DEFAULT '',
+  is_default INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS support_tickets (
+  id             TEXT PRIMARY KEY,
+  subject        TEXT NOT NULL,
+  category       TEXT NOT NULL DEFAULT 'Other',
+  message        TEXT NOT NULL DEFAULT '',
+  customer_name  TEXT NOT NULL DEFAULT '',
+  customer_email TEXT NOT NULL DEFAULT '',
+  status         TEXT NOT NULL DEFAULT 'open' CHECK(status IN ('open','in-progress','resolved','closed')),
+  created_at     TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at     TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
 CREATE TABLE IF NOT EXISTS settings (
   key        TEXT PRIMARY KEY,
   value      TEXT NOT NULL,
