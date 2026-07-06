@@ -13,7 +13,26 @@ export async function GET(request: NextRequest) {
       limit: sp.get('limit') ? Number(sp.get('limit')) : 100,
       offset: sp.get('offset') ? Number(sp.get('offset')) : 0,
     });
-    return Response.json({ products: rows, total });
+    // Map DB fields to frontend Product type
+    const products = rows.map(r => ({
+      id: r.id,
+      name: r.name,
+      cat: r.cat_id,
+      category: r.cat_name || '',
+      price: r.price,
+      was: r.was,
+      sku: r.sku,
+      rating: r.rating,
+      reviews: r.reviews,
+      stock: r.stock,
+      sold: r.sold,
+      glyph: r.glyph,
+      brand: r.brand,
+      badge: r.badge,
+      desc: r.description,
+      image_url: r.image_url,
+    }));
+    return Response.json({ products, total });
   } catch (e) {
     console.error('[GET /api/products]', e);
     return Response.json({ error: 'Failed to fetch products' }, { status: 500 });

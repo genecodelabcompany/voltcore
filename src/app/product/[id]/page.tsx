@@ -175,7 +175,7 @@ export default function ProductDetail({ params }: { params: { id: string } }) {
         {/* Tabs */}
         <div className="card card-pad" style={{ marginBottom: 32 }}>
           <div className="row gap0" style={{ borderBottom: '1px solid var(--line)', marginBottom: 24 }}>
-            {['Description', 'Specifications', 'Reviews'].map(t => (
+            {['Description', 'Specifications', 'Shipping & Returns', 'Reviews'].map(t => (
               <button key={t} onClick={() => setTab(t)} style={{
                 padding: '10px 20px', border: 'none', cursor: 'pointer', background: 'transparent',
                 fontWeight: tab === t ? 700 : 500, color: tab === t ? 'var(--blue-600)' : 'var(--muted)',
@@ -202,6 +202,88 @@ export default function ProductDetail({ params }: { params: { id: string } }) {
                 ))}
               </tbody>
             </table>
+          )}
+          {tab === 'Shipping & Returns' && (
+            <div style={{ maxWidth: 720 }}>
+              <h3 style={{ fontSize: 16, fontWeight: 800, marginBottom: 12 }}>Delivery Information</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 28 }}>
+                <div className="row gap12" style={{ alignItems: 'flex-start' }}>
+                  <Icon name="truck" size={20} color="var(--blue-600)" style={{ marginTop: 2, flexShrink: 0 }} />
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: 14 }}>Standard Delivery (2–3 business days)</div>
+                    <div className="sub" style={{ fontSize: 13, lineHeight: 1.5 }}>
+                      Free for orders over GHS 500. A flat fee of GHS 25 applies to orders under GHS 500.
+                      Delivered to your doorstep within the Greater Accra Region and major cities nationwide.
+                    </div>
+                  </div>
+                </div>
+                <div className="row gap12" style={{ alignItems: 'flex-start' }}>
+                  <Icon name="truck" size={20} color="var(--c-orange)" style={{ marginTop: 2, flexShrink: 0 }} />
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: 14 }}>Express Delivery (Same day, Accra)</div>
+                    <div className="sub" style={{ fontSize: 13, lineHeight: 1.5 }}>
+                      GHS 75 — Order before 12 PM for same-day delivery within Accra. Available Monday–Saturday.
+                    </div>
+                  </div>
+                </div>
+                <div className="row gap12" style={{ alignItems: 'flex-start' }}>
+                  <Icon name="map" size={20} color="var(--c-green)" style={{ marginTop: 2, flexShrink: 0 }} />
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: 14 }}>Pickup at Circle, Accra</div>
+                    <div className="sub" style={{ fontSize: 13, lineHeight: 1.5 }}>
+                      Free — Pick up your order at our Circle location. You'll receive a notification when your order is ready.
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <h3 style={{ fontSize: 16, fontWeight: 800, marginBottom: 12 }}>Return & Refund Policy</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 28 }}>
+                <div className="row gap12" style={{ alignItems: 'flex-start' }}>
+                  <Icon name="refresh" size={20} color="var(--blue-600)" style={{ marginTop: 2, flexShrink: 0 }} />
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: 14 }}>30-Day Return Window</div>
+                    <div className="sub" style={{ fontSize: 13, lineHeight: 1.5 }}>
+                      You may return unused, unopened items within 30 days of delivery for a full refund or exchange.
+                      Items must be in original packaging with all accessories included.
+                    </div>
+                  </div>
+                </div>
+                <div className="row gap12" style={{ alignItems: 'flex-start' }}>
+                  <Icon name="shield" size={20} color="var(--c-green)" style={{ marginTop: 2, flexShrink: 0 }} />
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: 14 }}>Defective or Damaged Items</div>
+                    <div className="sub" style={{ fontSize: 13, lineHeight: 1.5 }}>
+                      If you receive a defective or damaged item, contact us within 48 hours of delivery.
+                      We will arrange a free replacement or full refund, including return shipping costs.
+                    </div>
+                  </div>
+                </div>
+                <div className="row gap12" style={{ alignItems: 'flex-start' }}>
+                  <Icon name="card" size={20} color="var(--c-orange)" style={{ marginTop: 2, flexShrink: 0 }} />
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: 14 }}>Refund Processing</div>
+                    <div className="sub" style={{ fontSize: 13, lineHeight: 1.5 }}>
+                      Refunds are processed within 5–7 business days after we receive the returned item.
+                      The refund will be issued to your original payment method.
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <h3 style={{ fontSize: 16, fontWeight: 800, marginBottom: 12 }}>Warranty</h3>
+              <div className="row gap12" style={{ alignItems: 'flex-start' }}>
+                <Icon name="check" size={20} color="var(--blue-600)" style={{ marginTop: 2, flexShrink: 0 }} />
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: 14 }}>12-Month Warranty</div>
+                  <div className="sub" style={{ fontSize: 13, lineHeight: 1.5 }}>
+                    All VoltCore products come with a 12-month warranty against manufacturing defects.
+                    This covers faulty components, workmanship issues, and premature failure under normal use.
+                    The warranty does not cover damage from misuse, modification, or improper installation.
+                  </div>
+                </div>
+              </div>
+            </div>
           )}
           {tab === 'Reviews' && (
             <div>

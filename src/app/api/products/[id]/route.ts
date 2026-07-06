@@ -7,8 +7,26 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const product = await getProductById(id);
-    if (!product) return Response.json({ error: 'Not found' }, { status: 404 });
+    const row = await getProductById(id);
+    if (!row) return Response.json({ error: 'Not found' }, { status: 404 });
+    const product = {
+      id: row.id,
+      name: row.name,
+      cat: row.cat_id,
+      category: row.cat_name || '',
+      price: row.price,
+      was: row.was,
+      sku: row.sku,
+      rating: row.rating,
+      reviews: row.reviews,
+      stock: row.stock,
+      sold: row.sold,
+      glyph: row.glyph,
+      brand: row.brand,
+      badge: row.badge,
+      desc: row.description,
+      image_url: row.image_url,
+    };
     return Response.json({ product });
   } catch (e) {
     console.error('[GET /api/products/[id]]', e);

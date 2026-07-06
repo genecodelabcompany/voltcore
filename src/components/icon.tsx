@@ -51,6 +51,8 @@ const ICONS: Record<string, string> = {
   globe:   'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20',
   list:    'M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01',
   trend:   'M3 17l6-6 4 4 8-8M21 7v5h-5',
+  map:     'M3 7l6-3 6 3 6-3v13l-6 3-6-3-6 3zM9 4v13M15 7v13',
+  refresh: 'M23 4v6h-6M1 20v-6h6M3.5 9a9 9 0 0 1 14.2-3.2L23 10M1 14l5.3 4.2A9 9 0 0 0 20.5 15',
 };
 
 interface IconProps {
