@@ -1,19 +1,19 @@
 import { currentUser } from '@clerk/nextjs/server';
-import { redirect } from 'next/navigation';
+import { NextResponse } from 'next/server';
 
 export async function GET() {
   const user = await currentUser();
 
   if (!user) {
-    redirect('/login');
+    return NextResponse.redirect(new URL('/login', process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'));
   }
 
   const role = user.publicMetadata?.role;
 
   if (role === 'admin') {
-    redirect('/admin');
+    return NextResponse.redirect(new URL('/admin', process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'));
   }
 
   // Regular customer — send to account dashboard
-  redirect('/account');
+  return NextResponse.redirect(new URL('/account', process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'));
 }
