@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Logo } from '../logo';
 import { Icon } from '../icon';
-import { ReactNode } from 'react';
+import { ReactNode, useState, useEffect } from 'react';
 import { UserButton, useUser } from '@clerk/nextjs';
 
 const ADMIN_NAV = [
@@ -59,6 +59,19 @@ export function AdminShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const title = TITLES[pathname] || 'Admin';
   const { user } = useUser();
+  const [notifCount, setNotifCount] = useState(0);
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [notifications, setNotifications] = useState<{ type: string; message: string; link: string }[]>([]);
+
+  useEffect(() => {
+    fetch('/api/notifications')
+      .then(r => r.json())
+      .then(d => {
+        setNotifCount(d.total ?? 0);
+        setNotifications(d.notifications ?? []);
+      })
+      .catch(() => {});
+  }, []);
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg)' }}>
@@ -110,11 +123,39 @@ export function AdminShell({ children }: { children: ReactNode }) {
               style={{ paddingLeft: 42, height: 42, background: 'var(--surface-2)', border: '1px solid var(--line-2)' }}
               placeholder="Search orders, products, customers..." />
           </div>
-          <div className="row gap16">
-            <button style={iconBtn}>
+          <div className="row gap16" style={{ position: 'relative' }}>
+            <button style={iconBtn} onClick={() => setNotifOpen(!notifOpen)}>
               <Icon name="bell" size={20} />
-              <span style={navBadge}>5</span>
+              {notifCount > 0 && <span style={navBadge}>{notifCount > 9 ? '9+' : notifCount}</span>}
             </button>
+            {notifOpen && (
+              <div style={{
+                position: 'absolute', top: '100%', right: 80, width: 320, background: '#fff',
+                borderRadius: 12, boxShadow: '0 8px 32px rgba(0,0,0,.12)', border: '1px solid var(--line)',
+                zIndex: 100, padding: 8, marginTop: 4,
+              }}>
+                <div style={{ fontWeight: 700, fontSize: 13, padding: '8px 12px 4px', color: 'var(--muted)' }}>
+                  Notifications
+                </div>
+                {notifications.length === 0 ? (
+                  <div style={{ padding: '20px 12px', textAlign: 'center', color: 'var(--muted)', fontSize: 13 }}>
+                    All clear — no pending items
+                  </div>
+                ) : (
+                  notifications.map((n, i) => (
+                    <Link key={i} href={n.link} onClick={() => setNotifOpen(false)} style={{
+                      display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 8,
+                      textDecoration: 'none', color: 'var(--ink)', fontSize: 13, fontWeight: 500,
+                    }}>
+                      <span style={{
+                        width: 8, height: 8, borderRadius: '50%', background: 'var(--red)', flexShrink: 0,
+                      }} />
+                      {n.message}
+                    </Link>
+                  ))
+                )}
+              </div>
+            )}
             <button style={iconBtn}><Icon name="help" size={20} /></button>
             <div className="row gap8" style={{ paddingLeft: 6, borderLeft: '1px solid var(--line)', alignItems: 'center' }}>
               <UserButton appearance={{ elements: { avatarBox: { width: 34, height: 34 } } }} />

@@ -144,10 +144,12 @@ export default function AddProductPage() {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 20 }}>
             <label style={{ display: 'grid', gap: 8 }}>
               <span style={{ fontWeight: 600 }}>Category *</span>
-              <VcSelect value={catLabels[category] || category} options={catOptions.map(id => catLabels[id] || id)} onChange={v => {
-                const found = categories.find(c => c.name === v || c.id === v);
-                if (found) setCategory(found.id);
-              }} />
+              <select className="input" value={category} onChange={e => setCategory(e.target.value)} required style={{ height: 36 }}>
+                {categories.length === 0 && <option value="">No categories available</option>}
+                {categories.map(c => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
             </label>
             <label style={{ display: 'grid', gap: 8 }}>
               <span style={{ fontWeight: 600 }}>Status</span>

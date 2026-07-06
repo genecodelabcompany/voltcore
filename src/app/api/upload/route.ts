@@ -17,6 +17,7 @@ export async function POST(request: NextRequest) {
     // Build ImageKit upload form
     const uploadForm = new FormData();
     uploadForm.append('file', file);
+    uploadForm.append('fileName', file.name || 'upload');
     uploadForm.append('publicKey', PUBLIC_KEY);
     uploadForm.append('folder', folder);
     uploadForm.append('useUniqueFileName', 'true');

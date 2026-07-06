@@ -76,8 +76,8 @@ export default function LoginPage() {
             <p style={{ color: 'var(--muted)', fontSize: 14, marginTop: 6 }}>Sign in to your VoltCore account</p>
           </div>
           <SignIn
-            forceRedirectUrl="/api/auth/callback"
-            signUpForceRedirectUrl="/api/auth/callback"
+            forceRedirectUrl="/auth/callback"
+            signUpForceRedirectUrl="/auth/callback"
             signUpUrl="/sign-up"
             appearance={{
               elements: {

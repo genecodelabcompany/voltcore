@@ -27,8 +27,8 @@ export default function SignUpPage() {
           <p style={{ color: 'var(--muted)', fontSize: 14, marginTop: 4 }}>Join VoltCore Electronics today</p>
         </div>
         <SignUp
-          forceRedirectUrl="/api/auth/callback"
-          signInForceRedirectUrl="/api/auth/callback"
+          forceRedirectUrl="/auth/callback"
+          signInForceRedirectUrl="/auth/callback"
           signInUrl="/sign-in"
           appearance={{
             elements: {
