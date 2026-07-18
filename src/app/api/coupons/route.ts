@@ -14,12 +14,22 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const { code, discount_pct, max_uses, expires_at } = await request.json();
-    if (!code || !discount_pct) return Response.json({ error: 'code and discount_pct are required' }, { status: 400 });
+    const { code, type, value, min_order, max_uses, expires_at } = await request.json();
+    if (!code || value === undefined || value === null || value === '') {
+      return Response.json({ error: 'code and value are required' }, { status: 400 });
+    }
     const id = randomUUID().slice(0, 12);
     await db.execute({
-      sql: `INSERT INTO coupons (id, code, discount_pct, max_uses, expires_at) VALUES (?, ?, ?, ?, ?)`,
-      args: [id, code.toUpperCase(), Number(discount_pct), max_uses ?? 100, expires_at ?? null],
+      sql: `INSERT INTO coupons (id, code, type, value, min_order, max_uses, expires_at) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      args: [
+        id,
+        code.toUpperCase(),
+        type || 'percent',
+        Number(value),
+        min_order ? Number(min_order) : null,
+        max_uses ? Number(max_uses) : null,
+        expires_at || null,
+      ],
     });
     return Response.json({ id }, { status: 201 });
   } catch (e) {

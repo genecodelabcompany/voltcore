@@ -1,38 +1,67 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { PageHead } from '@/components/page-head';
 import { MiniStat } from '@/components/mini-stat';
 import { ProductThumb } from '@/components/product-thumb';
 import { StarRow } from '@/components/star-row';
 import { Icon } from '@/components/icon';
-import { productById } from '@/lib/data';
 
-const seed = [
-  ['uno-r3','Kwame Mensah',5,'Excellent quality, fast delivery in Accra. Works perfectly.','pending','2h ago'],
-  ['esp32','Akosua Boateng',4,'Good value for money. Packaging could be better.','pending','5h ago'],
-  ['dht22','Yaw Darko',2,'Sensor readings were off by a few degrees out of the box.','pending','1d ago'],
-  ['multim','Abena Osei',5,'Genuine component, tested on arrival. Will buy again.','approved','2d ago'],
-  ['solderk','Kofi Owusu',5,'Great starter kit, heats up fast. Recommended.','approved','3d ago'],
-  ['hcsr04','Ama Serwaa',1,'Arrived damaged, one pin bent. Requesting replacement.','flagged','4d ago'],
-  ['li18650','Nana Yeboah',4,'Holds charge well. Shipping was a day late though.','approved','5d ago'],
-] as const;
+interface Review {
+  id: string; product_id: string; product_name: string;
+  customer: string; rating: number; content: string;
+  status: string; created_at: string;
+}
 
 const tabs: Record<string, string> = { Pending: 'pending', Approved: 'approved', Flagged: 'flagged' };
-const pillFor: Record<string, string> = { pending: 'pill-amber', approved: 'pill-green', flagged: 'pill-red' };
+const pillFor: Record<string, string> = { pending: 'pill-amber', approved: 'pill-green', flagged: 'pill-red', rejected: 'pill-red' };
 
 export default function AdminReviews() {
   const [tab, setTab] = useState('Pending');
-  const rows = seed.filter(r => r[4] === tabs[tab]);
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch('/api/reviews').then(r => r.json());
+      setReviews(res.reviews ?? []);
+    } catch { /* ignore */ }
+    setLoading(false);
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  const updateStatus = async (id: string, status: string) => {
+    await fetch(`/api/reviews/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status }),
+    });
+    load();
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Remove this review?')) return;
+    await fetch(`/api/reviews/${id}`, { method: 'DELETE' });
+    load();
+  };
+
+  const rows = reviews.filter(r => r.status === tabs[tab]);
+  const pendingCount = reviews.filter(r => r.status === 'pending').length;
+  const flaggedCount = reviews.filter(r => r.status === 'flagged').length;
+  const avgRating = reviews.length
+    ? (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1)
+    : '—';
 
   return (
     <div>
       <PageHead title="Reviews" sub="Moderate and respond to customer product reviews"
         actions={<button className="btn btn-ghost"><Icon name="download" size={16} />Export</button>} />
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16, marginBottom: 20 }}>
-        <MiniStat label="Average Rating" value="4.7 ★" c="var(--c-orange)" />
-        <MiniStat label="Pending Moderation" value="3" c="var(--amber)" />
-        <MiniStat label="Total Reviews" value="1,284" />
-        <MiniStat label="Flagged" value="1" c="var(--c-red)" />
+        <MiniStat label="Average Rating" value={`${avgRating} ★`} c="var(--c-orange)" />
+        <MiniStat label="Pending Moderation" value={String(pendingCount)} c="var(--amber)" />
+        <MiniStat label="Total Reviews" value={String(reviews.length)} />
+        <MiniStat label="Flagged" value={String(flaggedCount)} c="var(--c-red)" />
       </div>
       <div className="card card-pad">
         <div className="row gap8" style={{ marginBottom: 18 }}>
@@ -44,29 +73,40 @@ export default function AdminReviews() {
             }}>{t}</button>
           ))}
         </div>
-        {rows.length === 0 && <div className="sub" style={{ padding: '32px 0', textAlign: 'center' }}>No {tab.toLowerCase()} reviews.</div>}
-        {rows.map((r, i) => {
-          const p = productById(r[0]);
-          return (
-            <div key={i} className="row gap16" style={{ padding: '18px 0', borderBottom: i < rows.length - 1 ? '1px solid var(--line-2)' : 'none', alignItems: 'flex-start' }}>
-              <ProductThumb glyph={p?.glyph || 'chip'} size={48} />
-              <div className="grow" style={{ minWidth: 0 }}>
-                <div className="row gap12" style={{ flexWrap: 'wrap' }}>
-                  <span style={{ fontWeight: 700, fontSize: 14 }}>{r[1]}</span>
-                  <StarRow rating={r[2]} size={13} />
-                  <span className={`pill ${pillFor[r[4]]}`} style={{ fontSize: 11 }}>{r[4]}</span>
-                  <span className="sub" style={{ fontSize: 12 }}>· {p?.name || r[0]} · {r[5]}</span>
-                </div>
-                <p className="sub" style={{ marginTop: 7, lineHeight: 1.55, fontSize: 13.5 }}>{r[3]}</p>
+        {loading ? (
+          <div className="sub" style={{ padding: '32px 0', textAlign: 'center' }}>Loading reviews…</div>
+        ) : rows.length === 0 ? (
+          <div className="sub" style={{ padding: '32px 0', textAlign: 'center' }}>No {tab.toLowerCase()} reviews.</div>
+        ) : rows.map((r, i) => (
+          <div key={r.id} className="row gap16" style={{ padding: '18px 0', borderBottom: i < rows.length - 1 ? '1px solid var(--line-2)' : 'none', alignItems: 'flex-start' }}>
+            <ProductThumb glyph="star" size={48} />
+            <div className="grow" style={{ minWidth: 0 }}>
+              <div className="row gap12" style={{ flexWrap: 'wrap' }}>
+                <span style={{ fontWeight: 700, fontSize: 14 }}>{r.customer}</span>
+                <StarRow rating={r.rating} size={13} />
+                <span className={`pill ${pillFor[r.status] || 'pill-amber'}`} style={{ fontSize: 11 }}>{r.status}</span>
+                <span className="sub" style={{ fontSize: 12 }}>· {r.product_name || r.product_id} · {new Date(r.created_at).toLocaleDateString()}</span>
               </div>
-              <div className="row gap8" style={{ flexShrink: 0 }}>
-                {r[4] !== 'approved' && <button className="btn btn-soft btn-sm"><Icon name="check" size={15} />Approve</button>}
-                <button className="btn btn-ghost btn-sm">Reply</button>
-                <button className="btn btn-ghost btn-sm" style={{ color: 'var(--red)', borderColor: 'var(--red-bg)' }}>Remove</button>
-              </div>
+              <p className="sub" style={{ marginTop: 7, lineHeight: 1.55, fontSize: 13.5 }}>{r.content}</p>
             </div>
-          );
-        })}
+            <div className="row gap8" style={{ flexShrink: 0 }}>
+              {r.status !== 'approved' && (
+                <button className="btn btn-soft btn-sm" onClick={() => updateStatus(r.id, 'approved')}>
+                  <Icon name="check" size={15} />Approve
+                </button>
+              )}
+              {r.status !== 'flagged' && (
+                <button className="btn btn-ghost btn-sm" onClick={() => updateStatus(r.id, 'flagged')}>
+                  Flag
+                </button>
+              )}
+              <button className="btn btn-ghost btn-sm" style={{ color: 'var(--red)', borderColor: 'var(--red-bg)' }}
+                onClick={() => handleDelete(r.id)}>
+                Remove
+              </button>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );

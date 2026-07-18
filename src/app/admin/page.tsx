@@ -75,8 +75,8 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     fetchData();
-    // Poll every 30 seconds for real-time updates
-    const interval = setInterval(fetchData, 30000);
+    // Poll every 15 seconds for real-time updates
+    const interval = setInterval(fetchData, 15000);
     return () => clearInterval(interval);
   }, [fetchData]);
 

@@ -3,6 +3,7 @@ import { Suspense, useState, useMemo, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { StoreShell } from '@/components/shells/store-shell';
 import { ProductCard } from '@/components/product-card';
+import { BannerCarousel } from '@/components/banner-carousel';
 import { Icon } from '@/components/icon';
 import { money } from '@/lib/utils';
 
@@ -101,15 +102,14 @@ function ShopContent() {
     <StoreShell noFooter>
       <div style={{ background: 'var(--bg)', minHeight: '100vh' }}>
 
-        {/* Hero */}
+        {/* Dynamic Banner Carousel */}
+        <BannerCarousel />
+
+        {/* Search bar */}
         <div style={{
-          background: 'linear-gradient(135deg, var(--navy) 0%, #1e3a5f 100%)',
-          padding: '48px 24px 40px', color: '#fff', textAlign: 'center',
+          background: 'var(--navy)',
+          padding: '0 24px 24px', color: '#fff', textAlign: 'center',
         }}>
-          <h1 style={{ fontSize: 30, fontWeight: 900, margin: '0 0 10px' }}>Electronics Shopping Mall</h1>
-          <p style={{ fontSize: 15, opacity: .8, margin: '0 0 24px' }}>
-            Microcontrollers, sensors, modules and tools — shipped across Ghana
-          </p>
           <div style={{ position: 'relative', maxWidth: 480, margin: '0 auto' }}>
             <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)' }}>
               <Icon name="search" size={18} color="var(--muted)" />

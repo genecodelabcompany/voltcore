@@ -147,9 +147,11 @@ CREATE TABLE IF NOT EXISTS banners (
 CREATE TABLE IF NOT EXISTS coupons (
   id           TEXT PRIMARY KEY,
   code         TEXT NOT NULL UNIQUE,
-  discount_pct INTEGER NOT NULL DEFAULT 10,
-  max_uses     INTEGER NOT NULL DEFAULT 100,
-  uses         INTEGER NOT NULL DEFAULT 0,
+  type         TEXT NOT NULL DEFAULT 'percent' CHECK(type IN ('percent','fixed')),
+  value        REAL NOT NULL DEFAULT 10,
+  min_order    REAL,
+  max_uses     INTEGER,
+  used_count   INTEGER NOT NULL DEFAULT 0,
   expires_at   TEXT,
   active       INTEGER NOT NULL DEFAULT 1,
   created_at   TEXT NOT NULL DEFAULT (datetime('now'))
@@ -179,6 +181,28 @@ CREATE TABLE IF NOT EXISTS support_tickets (
   status         TEXT NOT NULL DEFAULT 'open' CHECK(status IN ('open','in-progress','resolved','closed')),
   created_at     TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at     TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS reviews (
+  id           TEXT PRIMARY KEY,
+  product_id   TEXT NOT NULL,
+  product_name TEXT NOT NULL DEFAULT '',
+  customer     TEXT NOT NULL,
+  rating       INTEGER NOT NULL CHECK(rating >= 1 AND rating <= 5),
+  content      TEXT NOT NULL DEFAULT '',
+  status       TEXT NOT NULL DEFAULT 'pending' CHECK(status IN ('pending','approved','flagged','rejected')),
+  created_at   TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS refunds (
+  id           TEXT PRIMARY KEY,
+  order_id     TEXT NOT NULL,
+  customer     TEXT NOT NULL,
+  amount       REAL NOT NULL,
+  reason       TEXT NOT NULL DEFAULT '',
+  status       TEXT NOT NULL DEFAULT 'requested' CHECK(status IN ('requested','approved','processed','rejected')),
+  created_at   TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at   TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
 CREATE TABLE IF NOT EXISTS settings (

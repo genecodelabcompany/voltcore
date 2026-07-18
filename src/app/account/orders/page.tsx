@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { Pill } from '@/components/pill';
 import { Icon } from '@/components/icon';
 import { money } from '@/lib/utils';
@@ -71,7 +72,7 @@ export default function CustomerOrders() {
                 <div style={{ textAlign: 'right' }}>
                   <div style={{ fontWeight: 800, fontSize: 16 }}>{money(order.amount)}</div>
                   <div className="row gap8" style={{ marginTop: 10 }}>
-                    <button className="btn btn-ghost btn-sm">Details</button>
+                    <Link href={`/account/orders/${order.id}`} className="btn btn-ghost btn-sm">Details</Link>
                   </div>
                 </div>
               </div>
