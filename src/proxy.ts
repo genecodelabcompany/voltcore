@@ -9,9 +9,7 @@ const isProtectedRoute = createRouteMatcher([
 // In Next.js 16, the file convention is `proxy.ts` with a named `proxy` export.
 export const proxy = clerkMiddleware(async (auth, request) => {
   if (isProtectedRoute(request)) {
-    await auth.protect({
-      unauthenticatedUrl: '/login',
-    });
+    await auth.protect();
   }
 });
 

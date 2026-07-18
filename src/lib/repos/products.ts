@@ -13,6 +13,8 @@ export interface ProductRow {
   description: string;
   glyph: string;
   image_url: string | null;
+  image_urls: string | null;
+
   stock: number;
   sold: number;
   rating: number;

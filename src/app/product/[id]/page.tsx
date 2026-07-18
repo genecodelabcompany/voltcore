@@ -19,6 +19,7 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
   const { addToCart, toggleWish, wishlist } = useStore();
   const [qty, setQty] = useState(1);
   const [tab, setTab] = useState('Description');
+  const [activeImage, setActiveImage] = useState(0);
 
   useEffect(() => {
     fetch(`/api/products/${id}`)
@@ -89,27 +90,33 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
               padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
               aspectRatio: '1', marginBottom: 16, overflow: 'hidden',
             }}>
-              {product.image_url ? (
-                <img src={product.image_url} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              ) : (
-                <ProductThumb glyph={product.glyph} size={160} />
-              )}
+              {(() => {
+                const images = product.image_urls?.length ? product.image_urls : (product.image_url ? [product.image_url] : []);
+                const src = images[activeImage] || images[0] || null;
+                return src ? (
+                  <img src={src} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : (
+                  <ProductThumb glyph={product.glyph} size={160} />
+                );
+              })()}
             </div>
-            <div className="prod-thumb-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 8 }}>
-              {[0,1,2,3].map(i => (
-                <div key={i} className="card" style={{
-                  padding: 12, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  cursor: 'pointer', border: i === 0 ? '2px solid var(--blue-600)' : undefined,
-                  overflow: 'hidden',
-                }}>
-                  {product.image_url ? (
-                    <img src={product.image_url} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  ) : (
-                    <ProductThumb glyph={product.glyph} size={36} />
-                  )}
+            {(() => {
+              const images = product.image_urls?.length ? product.image_urls : (product.image_url ? [product.image_url] : []);
+              if (images.length <= 1) return null;
+              return (
+                <div className="prod-thumb-grid" style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(images.length, 4)},1fr)`, gap: 8 }}>
+                  {images.slice(0, 4).map((url, i) => (
+                    <div key={i} className="card" onClick={() => setActiveImage(i)} style={{
+                      padding: 12, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      cursor: 'pointer', border: activeImage === i ? '2px solid var(--blue-600)' : '2px solid transparent',
+                      overflow: 'hidden',
+                    }}>
+                      <img src={url} alt={`${product.name} ${i + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+              );
+            })()}
           </div>
 
           {/* Info */}
@@ -155,7 +162,8 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
                 <Icon name="heart" size={18} />
               </button>
             </div>
-            <button className="btn btn-soft" style={{ width: '100%' }}>Buy Now</button>
+            <button className="btn btn-soft" style={{ width: '100%' }} onClick={() => { addToCart(product.id, qty); router.push('/checkout'); }}>Buy Now</button>
+
 
             {/* Features */}
             <div className="prod-features-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 24 }}>

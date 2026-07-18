@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const {
       customer_name, customer_email, customer_phone,
-      address, city, amount, payment_ref, payment_method,
+      address, city, region, amount, payment_ref, payment_method,
       shipping_method, notes, items,
     } = body;
 
@@ -34,9 +34,10 @@ export async function POST(request: NextRequest) {
     const id = 'VC' + Date.now();
     await createOrder({
       id, customer_name, customer_email, customer_phone: customer_phone ?? '',
-      address: address ?? '', city: city ?? '', amount,
+      address: address ?? '', city: city ?? '', region: region ?? '', amount,
       payment_ref, payment_method, shipping_method, notes, items,
     });
+
 
     return Response.json({ id }, { status: 201 });
   } catch (e) {

@@ -8,6 +8,8 @@ export interface OrderRow {
   customer_phone: string;
   address: string;
   city: string;
+  region: string;
+
   amount: number;
   status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
   payment_ref: string | null;
@@ -96,7 +98,9 @@ export async function createOrder(data: {
   customer_phone: string;
   address: string;
   city: string;
+  region?: string;
   amount: number;
+
   payment_ref?: string;
   payment_method?: string;
   shipping_method?: string;
@@ -105,17 +109,18 @@ export async function createOrder(data: {
 }): Promise<string> {
   await db.execute({
     sql: `INSERT INTO orders
-          (id, customer_name, customer_email, customer_phone, address, city, amount,
+          (id, customer_name, customer_email, customer_phone, address, city, region, amount,
            payment_ref, payment_method, shipping_method, notes, status)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')`,
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')`,
     args: [
       data.id, data.customer_name, data.customer_email, data.customer_phone,
-      data.address, data.city, data.amount,
+      data.address, data.city, data.region ?? '', data.amount,
       data.payment_ref ?? null,
       data.payment_method ?? 'paystack',
       data.shipping_method ?? 'standard',
       data.notes ?? null,
     ],
+
   });
 
   for (const item of data.items) {

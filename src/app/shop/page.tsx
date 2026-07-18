@@ -23,7 +23,9 @@ const SORT_OPTIONS = ['Relevance', 'Price: Low to High', 'Price: High to Low', '
 
 function ShopContent() {
   const searchParams = useSearchParams();
+  const orderId = searchParams.get('order');
   const [cat, setCat]           = useState('all');
+
   const [priceIdx, setPriceIdx] = useState(0);
   const [sort, setSort]         = useState('Relevance');
   const [search, setSearch]     = useState(searchParams.get('q') ?? '');
@@ -97,8 +99,21 @@ function ShopContent() {
           </div>
         </div>
 
+        {/* Order success banner */}
+        {orderId && (
+          <div style={{
+            background: '#ECFDF3', color: 'var(--c-green)', padding: '16px 24px',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+            fontSize: 14, fontWeight: 600,
+          }}>
+            <Icon name="check" size={20} />
+            Order <strong>#{orderId}</strong> placed successfully! We'll send a confirmation to your email.
+          </div>
+        )}
+
         {/* Category strip — visible on all screen sizes, scrollable */}
         <div className="cat-strip">
+
           <button className={`cat-pill${cat === 'all' ? ' active' : ''}`} onClick={() => setCat('all')}>
             🏪 All
           </button>

@@ -23,6 +23,8 @@ export interface Product {
   badge: string | null;
   desc: string;
   image_url?: string;
+  image_urls?: string[];
+
 }
 
 export interface OrderItem {

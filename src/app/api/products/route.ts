@@ -31,6 +31,8 @@ export async function GET(request: NextRequest) {
       badge: r.badge,
       desc: r.description,
       image_url: r.image_url,
+      image_urls: r.image_urls ? JSON.parse(r.image_urls) : [],
+
     }));
     return Response.json({ products, total });
   } catch (e) {

@@ -12,6 +12,7 @@ interface Product {
   id: string; name: string; sku: string; brand: string; cat_id: string;
   price: number; was: number | null; stock: number; sold: number;
   description: string; glyph: string; image_url: string | null;
+  image_urls: string[];
   status: string; badge: string | null; rating: number; reviews: number;
 }
 
@@ -23,27 +24,43 @@ export default function EditProductPage() {
   const [uploading, setUploading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [existingImages, setExistingImages] = useState<string[]>([]);
 
   useEffect(() => {
     Promise.all([
       fetch(`/api/products/${id}`).then(r => r.json()),
       fetch('/api/categories').then(r => r.json()),
     ]).then(([prodData, catData]) => {
-      setProduct(prodData.product);
+      const p = prodData.product;
+      setProduct(p);
+      setExistingImages(p.image_urls || (p.image_url ? [p.image_url] : []));
       setCategories(catData.categories ?? []);
     });
   }, [id]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setImageFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => setImagePreview(reader.result as string);
-      reader.readAsDataURL(file);
+    const files = e.target.files;
+    if (files) {
+      Array.from(files).forEach(file => {
+        setImageFiles(prev => [...prev, file]);
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setImagePreviews(prev => [...prev, reader.result as string]);
+        };
+        reader.readAsDataURL(file);
+      });
     }
+  };
+
+  const removeExistingImage = (index: number) => {
+    setExistingImages(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const removeNewImage = (index: number) => {
+    setImageFiles(prev => prev.filter((_, i) => i !== index));
+    setImagePreviews(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleSave = async (e: React.SyntheticEvent<HTMLFormElement>) => {
@@ -52,27 +69,39 @@ export default function EditProductPage() {
     setError(null);
     setSaving(true);
     try {
-      let image_url = product.image_url;
-      if (imageFile) {
+      // Upload new images
+      const newUrls: string[] = [];
+      if (imageFiles.length > 0) {
         setUploading(true);
-        const fd = new FormData();
-        fd.append('file', imageFile);
-        fd.append('folder', 'voltcore/products');
-        const up = await fetch('/api/upload', { method: 'POST', body: fd });
-        const upData = await up.json();
+        for (const file of imageFiles) {
+          const fd = new FormData();
+          fd.append('file', file);
+          fd.append('folder', 'voltcore/products');
+          const up = await fetch('/api/upload', { method: 'POST', body: fd });
+          const upData = await up.json();
+          if (!up.ok) throw new Error(upData.error || 'Image upload failed');
+          newUrls.push(upData.url);
+        }
         setUploading(false);
-        if (!up.ok) throw new Error(upData.error || 'Image upload failed');
-        image_url = upData.url;
       }
+
+      // Combine existing (kept) + new images
+      const allImageUrls = [...existingImages, ...newUrls];
+
       const res = await fetch(`/api/products/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...product, image_url }),
+        body: JSON.stringify({
+          ...product,
+          image_url: allImageUrls.length > 0 ? allImageUrls[0] : null,
+          image_urls: JSON.stringify(allImageUrls),
+        }),
       });
       if (!res.ok) { const d = await res.json(); throw new Error(d.error); }
-      setProduct(prev => prev ? { ...prev, image_url } : prev);
-      setImageFile(null);
-      setImagePreview(null);
+      setProduct(prev => prev ? { ...prev, image_url: allImageUrls.length > 0 ? allImageUrls[0] : null, image_urls: allImageUrls } : prev);
+      setImageFiles([]);
+      setImagePreviews([]);
+      setExistingImages(allImageUrls);
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
@@ -152,28 +181,61 @@ export default function EditProductPage() {
             <input className="input" value={product.brand} onChange={e => setProduct(p => p && { ...p, brand: e.target.value })} />
           </label>
 
-          {/* Image */}
+          {/* Multiple Image Upload */}
           <div>
-            <div style={{ fontWeight: 600, marginBottom: 8 }}>Product Image</div>
-            {product.image_url && !imagePreview && (
-              <img src={product.image_url} alt={product.name} style={{ maxHeight: 120, borderRadius: 8, marginBottom: 10, display: 'block' }} />
+            <div style={{ fontWeight: 600, marginBottom: 8 }}>Product Images</div>
+
+            {/* Existing images */}
+            {existingImages.length > 0 && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
+                {existingImages.map((url, i) => (
+                  <div key={`existing-${i}`} style={{ position: 'relative' }}>
+                    <img src={url} alt={`Image ${i + 1}`} style={{ maxHeight: 100, borderRadius: 8, border: '1px solid var(--line)' }} />
+                    <button
+                      type="button"
+                      onClick={() => removeExistingImage(i)}
+                      style={{
+                        position: 'absolute', top: -6, right: -6, width: 22, height: 22,
+                        borderRadius: '50%', border: 'none', background: 'var(--c-red)', color: '#fff',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: 12, cursor: 'pointer', lineHeight: 1,
+                      }}
+                    >×</button>
+                  </div>
+                ))}
+              </div>
             )}
+
+            {/* New image previews */}
+            {imagePreviews.length > 0 && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
+                {imagePreviews.map((preview, i) => (
+                  <div key={`new-${i}`} style={{ position: 'relative' }}>
+                    <img src={preview} alt={`New ${i + 1}`} style={{ maxHeight: 100, borderRadius: 8, border: '1px solid var(--blue-500)' }} />
+                    <button
+                      type="button"
+                      onClick={() => removeNewImage(i)}
+                      style={{
+                        position: 'absolute', top: -6, right: -6, width: 22, height: 22,
+                        borderRadius: '50%', border: 'none', background: 'var(--c-red)', color: '#fff',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: 12, cursor: 'pointer', lineHeight: 1,
+                      }}
+                    >×</button>
+                  </div>
+                ))}
+              </div>
+            )}
+
             <div style={{ border: '2px dashed var(--line)', borderRadius: 'var(--r)', padding: '16px', textAlign: 'center', cursor: 'pointer' }}
               onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--blue-500)'; }}
               onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--line)'; }}>
-              <input type="file" accept="image/*" onChange={handleImageChange} style={{ display: 'none' }} id="img-edit" />
+              <input type="file" accept="image/*" multiple onChange={handleImageChange} style={{ display: 'none' }} id="img-edit" />
               <label htmlFor="img-edit" style={{ cursor: 'pointer', display: 'block' }}>
-                {imagePreview ? (
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
-                    <img src={imagePreview} alt="Preview" style={{ maxHeight: 120, borderRadius: 8 }} />
-                    <span style={{ fontSize: 13, color: 'var(--muted)' }}>{uploading ? '⏳ Uploading…' : 'Click to change'}</span>
-                  </div>
-                ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
-                    <Icon name="image" size={28} color="var(--muted)" />
-                    <span style={{ fontSize: 13, color: 'var(--muted)' }}>{product.image_url ? 'Click to replace image' : 'Upload product image'}</span>
-                  </div>
-                )}
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+                  <Icon name="image" size={28} color="var(--muted)" />
+                  <span style={{ fontSize: 13, color: 'var(--muted)' }}>Click to add more images</span>
+                </div>
               </label>
             </div>
           </div>

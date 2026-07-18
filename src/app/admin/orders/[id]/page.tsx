@@ -10,7 +10,8 @@ import { money } from '@/lib/utils';
 interface OrderItem { id: string; product_id: string; name: string; price: number; qty: number; }
 interface Order {
   id: string; customer_name: string; customer_email: string; customer_phone: string;
-  address: string; city: string; amount: number;
+  address: string; city: string; region: string; amount: number;
+
   status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
   payment_ref: string | null; payment_method: string; shipping_method: string;
   notes: string | null; created_at: string; items: OrderItem[];
@@ -165,9 +166,10 @@ export default function OrderDetailPage() {
           <div className="card card-pad">
             <div style={{ fontWeight: 700, marginBottom: 14 }}>Delivery Address</div>
             <div className="sub" style={{ fontSize: 14, lineHeight: 1.7 }}>
-              {order.address}<br />{order.city}
+              {order.address}<br />{order.city}{order.region ? `, ${order.region}` : ''}
             </div>
           </div>
+
 
           <div className="card card-pad">
             <div style={{ fontWeight: 700, marginBottom: 14 }}>Payment</div>

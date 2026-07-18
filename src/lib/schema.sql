@@ -23,6 +23,8 @@ CREATE TABLE IF NOT EXISTS products (
   description TEXT NOT NULL DEFAULT '',
   glyph       TEXT NOT NULL DEFAULT 'chip',
   image_url   TEXT,
+  image_urls  TEXT DEFAULT '[]',
+
   stock       INTEGER NOT NULL DEFAULT 0,
   sold        INTEGER NOT NULL DEFAULT 0,
   rating      REAL NOT NULL DEFAULT 4.5,
@@ -39,6 +41,8 @@ CREATE TABLE IF NOT EXISTS orders (
   customer_phone  TEXT NOT NULL DEFAULT '',
   address         TEXT NOT NULL DEFAULT '',
   city            TEXT NOT NULL DEFAULT '',
+  region          TEXT NOT NULL DEFAULT '',
+
   amount          REAL NOT NULL,
   status          TEXT NOT NULL DEFAULT 'pending' CHECK(status IN ('pending','processing','shipped','delivered','cancelled')),
   payment_ref     TEXT,

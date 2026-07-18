@@ -28,6 +28,7 @@ export default function CheckoutPage() {
   const [city, setCity] = useState('Accra');
   const [region, setRegion] = useState('Greater Accra');
   const [delivery, setDelivery] = useState('standard');
+
   const [paymentMethod, setPaymentMethod] = useState('card');
 
   useEffect(() => {
@@ -59,13 +60,13 @@ export default function CheckoutPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          items: cartItems.map(c => ({ product_id: c.id, qty: c.qty, price: c.product!.price })),
-          subtotal,
-          shipping,
-          total,
-          delivery_method: delivery,
+          items: cartItems.map(c => ({ product_id: c.id, qty: c.qty, price: c.product!.price, name: c.product!.name })),
+          amount: total,
+          shipping_method: delivery,
           payment_method: paymentMethod,
-          shipping_address: `${address}, ${city}, ${region}`,
+          address,
+          city,
+          region,
           customer_name: `${firstName} ${lastName}`,
           customer_email: email,
           customer_phone: phone,
@@ -74,7 +75,8 @@ export default function CheckoutPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Order failed');
       clearCart();
-      router.push(`/account/orders`);
+      router.push(`/shop?order=${data.id}`);
+
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Something went wrong');
     } finally {

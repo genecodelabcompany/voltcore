@@ -26,6 +26,8 @@ export async function GET(
       badge: row.badge,
       desc: row.description,
       image_url: row.image_url,
+      image_urls: row.image_urls ? JSON.parse(row.image_urls) : [],
+
     };
     return Response.json({ product });
   } catch (e) {

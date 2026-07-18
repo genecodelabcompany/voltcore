@@ -18,8 +18,8 @@ export default function AddProductPage() {
   const [stock, setStock] = useState('');
   const [description, setDescription] = useState('');
   const [status, setStatus] = useState('Published');
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
@@ -36,13 +36,25 @@ export default function AddProductPage() {
   }, []);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setImageFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => setImagePreview(reader.result as string);
-      reader.readAsDataURL(file);
+    const files = e.target.files;
+    if (files) {
+      const newFiles: File[] = [];
+      const newPreviews: string[] = [];
+      Array.from(files).forEach(file => {
+        newFiles.push(file);
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setImagePreviews(prev => [...prev, reader.result as string]);
+        };
+        reader.readAsDataURL(file);
+      });
+      setImageFiles(prev => [...prev, ...newFiles]);
     }
+  };
+
+  const removeImage = (index: number) => {
+    setImageFiles(prev => prev.filter((_, i) => i !== index));
+    setImagePreviews(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
@@ -51,18 +63,20 @@ export default function AddProductPage() {
     setSaving(true);
 
     try {
-      // 1. Upload image if provided
-      let image_url: string | null = null;
-      if (imageFile) {
+      // 1. Upload all images
+      const imageUrls: string[] = [];
+      if (imageFiles.length > 0) {
         setUploading(true);
-        const fd = new FormData();
-        fd.append('file', imageFile);
-        fd.append('folder', 'voltcore/products');
-        const uploadRes = await fetch('/api/upload', { method: 'POST', body: fd });
-        const uploadData = await uploadRes.json();
+        for (const file of imageFiles) {
+          const fd = new FormData();
+          fd.append('file', file);
+          fd.append('folder', 'voltcore/products');
+          const uploadRes = await fetch('/api/upload', { method: 'POST', body: fd });
+          const uploadData = await uploadRes.json();
+          if (!uploadRes.ok) throw new Error(uploadData.error || 'Image upload failed');
+          imageUrls.push(uploadData.url);
+        }
         setUploading(false);
-        if (!uploadRes.ok) throw new Error(uploadData.error || 'Image upload failed');
-        image_url = uploadData.url;
       }
 
       // 2. Create product
@@ -76,7 +90,8 @@ export default function AddProductPage() {
           stock: parseInt(stock),
           description,
           glyph: 'chip',
-          image_url,
+          image_url: imageUrls.length > 0 ? imageUrls[0] : null,
+          image_urls: JSON.stringify(imageUrls),
           status: status.toLowerCase(),
         }),
       });
@@ -87,7 +102,7 @@ export default function AddProductPage() {
       setSuccess(data.id);
       // Reset form
       setName(''); setSku(''); setPrice(''); setStock(''); setDescription('');
-      setImageFile(null); setImagePreview(null);
+      setImageFiles([]); setImagePreviews([]);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong');
     } finally {
@@ -97,8 +112,6 @@ export default function AddProductPage() {
   };
 
   const statusOptions = ['Published', 'Draft', 'Hidden'];
-  const catOptions = categories.map(c => c.id);
-  const catLabels = categories.reduce((acc, c) => { acc[c.id] = c.name; return acc; }, {} as Record<string, string>);
 
   return (
     <div>
@@ -170,28 +183,44 @@ export default function AddProductPage() {
             <input className="input" value={brand} onChange={e => setBrand(e.target.value)} placeholder="e.g. Arduino" />
           </label>
 
-          {/* Image Upload */}
+          {/* Multiple Image Upload */}
           <div>
-            <div style={{ fontWeight: 600, marginBottom: 8 }}>Product Image</div>
+            <div style={{ fontWeight: 600, marginBottom: 8 }}>Product Images (you can upload multiple)</div>
             <div
               style={{ border: '2px dashed var(--line)', borderRadius: 'var(--r)', padding: '20px', textAlign: 'center', cursor: 'pointer', transition: 'all 0.2s' }}
               onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--blue-500)'; (e.currentTarget as HTMLElement).style.background = 'var(--blue-50)'; }}
               onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--line)'; (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
             >
-              <input type="file" accept="image/*" onChange={handleImageChange} style={{ display: 'none' }} id="image-upload" />
+              <input type="file" accept="image/*" multiple onChange={handleImageChange} style={{ display: 'none' }} id="image-upload" />
               <label htmlFor="image-upload" style={{ cursor: 'pointer', display: 'block' }}>
-                {imagePreview ? (
+                {imagePreviews.length > 0 ? (
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
-                    <img src={imagePreview} alt="Preview" style={{ maxHeight: 150, borderRadius: 8 }} />
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center' }}>
+                      {imagePreviews.map((preview, i) => (
+                        <div key={i} style={{ position: 'relative' }}>
+                          <img src={preview} alt={`Preview ${i + 1}`} style={{ maxHeight: 100, borderRadius: 8 }} />
+                          <button
+                            type="button"
+                            onClick={() => removeImage(i)}
+                            style={{
+                              position: 'absolute', top: -6, right: -6, width: 22, height: 22,
+                              borderRadius: '50%', border: 'none', background: 'var(--c-red)', color: '#fff',
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              fontSize: 12, cursor: 'pointer', lineHeight: 1,
+                            }}
+                          >×</button>
+                        </div>
+                      ))}
+                    </div>
                     <span style={{ fontSize: 13, color: 'var(--muted)' }}>
-                      {uploading ? '⏳ Uploading to ImageKit…' : 'Click to change image'}
+                      {uploading ? '⏳ Uploading to ImageKit…' : 'Click to add more images'}
                     </span>
                   </div>
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
                     <Icon name="image" size={32} color="var(--muted)" />
-                    <span style={{ fontWeight: 600, fontSize: 14 }}>Upload product image</span>
-                    <span style={{ fontSize: 12, color: 'var(--muted)' }}>PNG, JPG up to 5MB — uploads to ImageKit</span>
+                    <span style={{ fontWeight: 600, fontSize: 14 }}>Upload product images</span>
+                    <span style={{ fontSize: 12, color: 'var(--muted)' }}>PNG, JPG up to 5MB each — uploads to ImageKit</span>
                   </div>
                 )}
               </label>

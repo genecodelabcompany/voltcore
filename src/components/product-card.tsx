@@ -26,12 +26,9 @@ export function ProductCard({ product: p }: ProductCardProps) {
   const handleOrderNow = (e: React.MouseEvent) => {
     e.stopPropagation();
     addToCart(p.id);
-    if (isSignedIn) {
-      router.push('/checkout');
-    } else {
-      router.push('/login?redirect_url=/checkout');
-    }
+    router.push('/checkout');
   };
+
 
   return (
     <div
