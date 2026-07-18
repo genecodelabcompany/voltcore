@@ -31,7 +31,52 @@ export default function CheckoutPage() {
 
   const [paymentMethod, setPaymentMethod] = useState('card');
 
+  // Handle Paystack callback (verify payment after redirect)
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const verify = params.get('verify');
+    const orderId = params.get('order_id');
+    const trxref = params.get('trxref'); // Paystack appends this
+
+    if (verify === '1' && (orderId || trxref)) {
+      const ref = trxref || orderId;
+      // Verify payment with Paystack
+      fetch('/api/paystack/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reference: ref, order_id: orderId }),
+      })
+        .then(r => r.json())
+        .then(data => {
+          if (data.verified) {
+            // Clear cart from session storage
+            const savedCart = sessionStorage.getItem('pending_cart');
+            if (savedCart) {
+              try {
+                const items = JSON.parse(savedCart);
+                // Only clear if the cart matches what was ordered
+                clearCart();
+              } catch { /* ignore */ }
+            } else {
+              clearCart();
+            }
+            sessionStorage.removeItem('pending_order_id');
+            sessionStorage.removeItem('pending_cart');
+            // Clean URL and redirect
+            window.history.replaceState({}, '', '/checkout');
+            router.push(`/shop?order=${orderId || ref}`);
+          } else {
+            setError('Payment verification failed. Please contact support.');
+            setLoading(false);
+          }
+        })
+        .catch(() => {
+          setError('Could not verify payment. Please contact support with your order ID.');
+          setLoading(false);
+        });
+      return; // Don't proceed with normal loading
+    }
+
     if (cart.length === 0) { setLoading(false); return; }
     fetch('/api/products?limit=500')
       .then(r => r.json())
@@ -41,7 +86,8 @@ export default function CheckoutPage() {
         setLoading(false);
       })
       .catch(() => setLoading(false));
-  }, [cart]);
+  }, [cart, clearCart, router]);
+
 
   const cartItems = cart.map(c => {
     const p = products.find(pr => pr.id === c.id);
@@ -56,7 +102,8 @@ export default function CheckoutPage() {
     setProcessing(true);
     setError('');
     try {
-      const res = await fetch('/api/orders', {
+      // Step 1: Create the order first
+      const orderRes = await fetch('/api/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -72,10 +119,36 @@ export default function CheckoutPage() {
           customer_phone: phone,
         }),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Order failed');
+      const orderData = await orderRes.json();
+      if (!orderRes.ok) throw new Error(orderData.error || 'Order failed');
+
+      // Step 2: If Paystack, initialize payment and redirect
+      if (paymentMethod === 'paystack') {
+        const payRes = await fetch('/api/paystack/initialize', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email,
+            amount: total,
+            metadata: { order_id: orderData.id, customer_name: `${firstName} ${lastName}` },
+            callback_url: `${window.location.origin}/checkout?verify=1&order_id=${orderData.id}`,
+          }),
+        });
+        const payData = await payRes.json();
+        if (!payRes.ok) throw new Error(payData.error || 'Payment initialization failed');
+
+        // Store order id so we can clear cart after successful payment
+        sessionStorage.setItem('pending_order_id', orderData.id);
+        sessionStorage.setItem('pending_cart', JSON.stringify(cart));
+
+        // Redirect to Paystack
+        window.location.href = payData.authorization_url;
+        return;
+      }
+
+      // For non-Paystack methods, just confirm the order
       clearCart();
-      router.push(`/shop?order=${data.id}`);
+      router.push(`/shop?order=${orderData.id}`);
 
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Something went wrong');
@@ -83,6 +156,7 @@ export default function CheckoutPage() {
       setProcessing(false);
     }
   };
+
 
   if (loading) return (
     <StoreShell>
