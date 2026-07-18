@@ -409,6 +409,18 @@ input, select, textarea { font-family: inherit; }
   .prod-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 12px !important; }
 }
 
+/* ---------- Product List (Single Column) ---------- */
+@media (max-width: 767px) {
+  .prod-list .card {
+    flex-direction: column !important;
+  }
+  .prod-list .card > div:first-child {
+    width: 100% !important;
+    min-width: 100% !important;
+    height: 200px !important;
+  }
+}
+
 /* ---------- Services Page ---------- */
 @media (max-width: 767px) {
   .services-grid { grid-template-columns: 1fr !important; }

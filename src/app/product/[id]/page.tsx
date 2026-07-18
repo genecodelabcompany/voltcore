@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, use, useRef } from 'react';
+import { useState, useEffect, useCallback, use, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { StoreShell } from '@/components/shells/store-shell';
 import { ProductThumb } from '@/components/product-thumb';
@@ -34,15 +34,26 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
     };
   }, [product]);
 
-  useEffect(() => {
-    fetch(`/api/products/${id}`)
-      .then(r => r.json())
-      .then(data => {
-        setProduct(data.product ?? null);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
+  const fetchProduct = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/products/${id}`);
+      const data = await res.json();
+      setProduct(data.product ?? null);
+      setLoading(false);
+    } catch {
+      setLoading(false);
+    }
   }, [id]);
+
+  useEffect(() => {
+    fetchProduct();
+  }, [fetchProduct]);
+
+  // Poll every 15 seconds for real-time updates
+  useEffect(() => {
+    const interval = setInterval(fetchProduct, 15000);
+    return () => clearInterval(interval);
+  }, [fetchProduct]);
 
   useEffect(() => {
     if (product) {

@@ -1,9 +1,10 @@
 'use client';
-import { Suspense, useState, useMemo, useEffect } from 'react';
+import { Suspense, useState, useMemo, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { StoreShell } from '@/components/shells/store-shell';
 import { ProductCard } from '@/components/product-card';
 import { Icon } from '@/components/icon';
+import { money } from '@/lib/utils';
 
 interface Category { id: string; name: string; icon: string; }
 interface Product {
@@ -23,6 +24,8 @@ const PRICE_RANGES = [
 ];
 const SORT_OPTIONS = ['Relevance', 'Price: Low to High', 'Price: High to Low', 'Top Rated', 'Newest'];
 
+type LayoutMode = 'grid' | 'single';
+
 function ShopContent() {
   const searchParams = useSearchParams();
   const orderId = searchParams.get('order');
@@ -33,21 +36,36 @@ function ShopContent() {
   const [search, setSearch]     = useState(searchParams.get('q') ?? '');
   const [inStock, setInStock]   = useState(false);
   const [showFilters, setShowFilters] = useState(false);
+  const [layout, setLayout]     = useState<LayoutMode>('grid');
 
   const [products, setProducts]     = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading]       = useState(true);
 
+  const fetchProducts = useCallback(async () => {
+    try {
+      const res = await fetch('/api/products?status=published&limit=200');
+      const data = await res.json();
+      if (data.products) setProducts(data.products);
+    } catch { /* ignore */ }
+  }, []);
+
+  // Initial fetch
   useEffect(() => {
     Promise.all([
       fetch('/api/categories').then(r => r.json()),
-      fetch('/api/products?status=published&limit=200').then(r => r.json()),
-    ]).then(([catData, prodData]) => {
+      fetchProducts(),
+    ]).then(([catData]) => {
       setCategories(catData.categories ?? []);
-      setProducts(prodData.products ?? []);
       setLoading(false);
     });
-  }, []);
+  }, [fetchProducts]);
+
+  // Poll every 15 seconds for real-time updates when admin adds/changes products
+  useEffect(() => {
+    const interval = setInterval(fetchProducts, 15000);
+    return () => clearInterval(interval);
+  }, [fetchProducts]);
 
   const range = PRICE_RANGES[priceIdx];
 
@@ -197,6 +215,33 @@ function ShopContent() {
                 {loading ? 'Loading…' : `${filtered.length} product${filtered.length !== 1 ? 's' : ''} found`}
               </span>
               <div className="row gap8">
+                {/* Layout toggle */}
+                <div className="row gap4" style={{ marginRight: 8, border: '1px solid var(--line)', borderRadius: 'var(--r-sm)', overflow: 'hidden' }}>
+                  <button
+                    onClick={() => setLayout('grid')}
+                    style={{
+                      padding: '6px 10px', border: 'none', cursor: 'pointer', fontSize: 13,
+                      background: layout === 'grid' ? 'var(--blue-600)' : 'transparent',
+                      color: layout === 'grid' ? '#fff' : 'var(--muted)',
+                      display: 'flex', alignItems: 'center', gap: 4, fontWeight: 600,
+                    }}
+                    title="Grid View"
+                  >
+                    <Icon name="grid" size={14} /> Grid
+                  </button>
+                  <button
+                    onClick={() => setLayout('single')}
+                    style={{
+                      padding: '6px 10px', border: 'none', cursor: 'pointer', fontSize: 13,
+                      background: layout === 'single' ? 'var(--blue-600)' : 'transparent',
+                      color: layout === 'single' ? '#fff' : 'var(--muted)',
+                      display: 'flex', alignItems: 'center', gap: 4, fontWeight: 600,
+                    }}
+                    title="Single Column View"
+                  >
+                    <Icon name="list" size={14} /> List
+                  </button>
+                </div>
                 <span className="sub" style={{ fontSize: 13, alignSelf: 'center' }}>Sort:</span>
                 <select className="input" value={sort} onChange={e => setSort(e.target.value)}
                   style={{ fontSize: 13, padding: '6px 10px', width: 'auto' }}>
@@ -217,9 +262,13 @@ function ShopContent() {
                 <div style={{ fontWeight: 700, marginTop: 16 }}>No products found</div>
                 <div style={{ fontSize: 13, marginTop: 6 }}>Try adjusting your filters or search term.</div>
               </div>
-            ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 20 }}>
+            ) : layout === 'grid' ? (
+              <div className="prod-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 20 }}>
                 {filtered.map(p => <ProductCard key={p.id} product={p as never} />)}
+              </div>
+            ) : (
+              <div className="prod-list" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                {filtered.map(p => <ProductCard key={p.id} product={p as never} layout="single" />)}
               </div>
             )}
           </div>
