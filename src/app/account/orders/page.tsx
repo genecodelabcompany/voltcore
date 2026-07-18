@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useUser } from '@clerk/nextjs';
 import { Pill } from '@/components/pill';
 import { Icon } from '@/components/icon';
 import { money } from '@/lib/utils';
@@ -13,25 +14,64 @@ interface Order {
 const tabs = ['All', 'Pending', 'Processing', 'Shipped', 'Delivered'];
 
 export default function CustomerOrders() {
+  const { user, isSignedIn, isLoaded } = useUser();
   const [tab, setTab] = useState('All');
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!isLoaded || !isSignedIn || !user?.primaryEmailAddress?.emailAddress) {
+      if (isLoaded) setLoading(false);
+      return;
+    }
+
     const status = tab === 'All' ? '' : tab.toLowerCase();
-    fetch(`/api/orders${status ? `?status=${status}` : ''}`)
+    const email = user.primaryEmailAddress.emailAddress;
+    const params = new URLSearchParams();
+    if (status) params.set('status', status);
+    params.set('email', email);
+
+    fetch(`/api/orders?${params.toString()}`)
       .then(r => r.json())
       .then(data => {
         setOrders(data.orders ?? []);
         setLoading(false);
       })
       .catch(() => setLoading(false));
-  }, [tab]);
+  }, [tab, user, isSignedIn, isLoaded]);
 
   const fmt = (dt: string) => {
     try { return new Date(dt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }); }
     catch { return dt; }
   };
+
+  if (!isLoaded) {
+    return (
+      <div>
+        <div style={{ marginBottom: 20 }}>
+          <h2 style={{ fontSize: 20, fontWeight: 800, margin: 0 }}>My Orders</h2>
+          <div className="sub" style={{ marginTop: 4 }}>Track and manage your purchases</div>
+        </div>
+        <div className="card card-pad sub" style={{ textAlign: 'center', padding: '40px 0' }}>Loading…</div>
+      </div>
+    );
+  }
+
+  if (!isSignedIn) {
+    return (
+      <div>
+        <div style={{ marginBottom: 20 }}>
+          <h2 style={{ fontSize: 20, fontWeight: 800, margin: 0 }}>My Orders</h2>
+          <div className="sub" style={{ marginTop: 4 }}>Track and manage your purchases</div>
+        </div>
+        <div className="card card-pad" style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--muted)' }}>
+          <Icon name="lock" size={40} color="var(--line)" />
+          <div style={{ fontWeight: 700, marginTop: 16, marginBottom: 8 }}>Sign in to view your orders</div>
+          <Link href="/sign-in" className="btn btn-primary btn-sm">Sign In</Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -53,7 +93,9 @@ export default function CustomerOrders() {
           <div className="card card-pad sub" style={{ textAlign: 'center', padding: '40px 0' }}>Loading orders…</div>
         ) : orders.length === 0 ? (
           <div className="card card-pad" style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--muted)' }}>
-            No {tab.toLowerCase()} orders found.
+            <Icon name="box" size={40} color="var(--line)" />
+            <div style={{ fontWeight: 700, marginTop: 16, marginBottom: 8 }}>No {tab.toLowerCase()} orders yet</div>
+            <Link href="/shop" className="btn btn-primary btn-sm">Start Shopping</Link>
           </div>
         ) : (
           orders.map(order => (

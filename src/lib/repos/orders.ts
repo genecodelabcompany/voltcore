@@ -33,6 +33,7 @@ export interface OrderItemRow {
 export interface OrderFilters {
   status?: string;
   search?: string;
+  email?: string;
   limit?: number;
   offset?: number;
 }
@@ -49,6 +50,10 @@ export async function getOrders(filters: OrderFilters = {}): Promise<{ rows: Ord
     conditions.push('(o.id LIKE ? OR o.customer_name LIKE ? OR o.customer_email LIKE ?)');
     const q = `%${filters.search}%`;
     args.push(q, q, q);
+  }
+  if (filters.email) {
+    conditions.push('o.customer_email = ?');
+    args.push(filters.email);
   }
 
   const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';

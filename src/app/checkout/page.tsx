@@ -95,7 +95,7 @@ export default function CheckoutPage() {
   }).filter(c => c.product);
 
   const subtotal = cartItems.reduce((s, c) => s + (c.product?.price ?? 0) * c.qty, 0);
-  const shipping = delivery === 'express' ? 75 : subtotal >= 500 ? 0 : 25;
+  const shipping = delivery === 'express' ? 75 : delivery === 'pickup' ? 0 : subtotal >= 500 ? 0 : 25;
   const total = subtotal + shipping;
 
   const handlePlaceOrder = async () => {
@@ -274,6 +274,7 @@ export default function CheckoutPage() {
                 {[
                   { key: 'standard', label: 'Standard Delivery', desc: subtotal >= 500 ? 'Free' : 'GHS 25', time: '2–3 business days' },
                   { key: 'express', label: 'Express Delivery', desc: 'GHS 75', time: 'Same day (Accra)' },
+                  { key: 'pickup', label: 'Self Pickup', desc: 'Free', time: 'Collect from our store' },
                 ].map(d => (
                   <div key={d.key} className="row gap12" style={{
                     padding: '14px 16px', borderRadius: 'var(--r)', border: `2px solid ${delivery === d.key ? 'var(--blue-600)' : 'var(--line)'}`,

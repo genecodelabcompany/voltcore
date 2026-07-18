@@ -1,7 +1,7 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { PageHead } from '@/components/page-head';
 import { Icon } from '@/components/icon';
 
@@ -16,25 +16,58 @@ const COLOR_OPTS = [
 
 export default function AddCategoryPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const editId = searchParams.get('edit');
+  const isEditing = !!editId;
+
   const [name, setName]       = useState('');
   const [icon, setIcon]       = useState('📦');
   const [color, setColor]     = useState('var(--c-blue)');
   const [sortOrder, setSortOrder] = useState('0');
   const [saving, setSaving]   = useState(false);
+  const [loading, setLoading] = useState(isEditing);
   const [error, setError]     = useState<string | null>(null);
+
+  // Load existing category data if editing
+  useEffect(() => {
+    if (!editId) return;
+    fetch(`/api/categories/${editId}`)
+      .then(r => r.json())
+      .then(data => {
+        const c = data.category;
+        if (c) {
+          setName(c.name);
+          setIcon(c.icon);
+          setColor(c.color);
+          setSortOrder(String(c.sort_order ?? 0));
+        }
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, [editId]);
 
   const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
     setSaving(true);
     try {
-      const res = await fetch('/api/categories', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, icon, color, sort_order: parseInt(sortOrder) }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to create category');
+      if (isEditing) {
+        const res = await fetch(`/api/categories/${editId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, icon, color, sort_order: parseInt(sortOrder) }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to update category');
+      } else {
+        const res = await fetch('/api/categories', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, icon, color, sort_order: parseInt(sortOrder) }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to create category');
+      }
       router.push('/admin/categories');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong');
@@ -42,9 +75,22 @@ export default function AddCategoryPage() {
     }
   };
 
+  if (loading) {
+    return (
+      <div>
+        <PageHead title="Edit Category" sub="Loading category data…"
+          actions={<Link href="/admin/categories" className="btn btn-ghost"><Icon name="chevL" size={16} /> Back</Link>} />
+        <div className="card card-pad" style={{ maxWidth: 560 }}>
+          <div className="sub" style={{ textAlign: 'center', padding: '40px 0' }}>Loading category…</div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div>
-      <PageHead title="Add Category" sub="Create a new product category"
+      <PageHead title={isEditing ? 'Edit Category' : 'Add Category'}
+        sub={isEditing ? `Editing: ${name}` : 'Create a new product category'}
         actions={<Link href="/admin/categories" className="btn btn-ghost"><Icon name="chevL" size={16} /> Back</Link>} />
 
       <div className="card card-pad" style={{ maxWidth: 560 }}>
@@ -87,7 +133,7 @@ export default function AddCategoryPage() {
           <div className="row gap12" style={{ justifyContent: 'flex-end' }}>
             <Link href="/admin/categories" className="btn btn-ghost">Cancel</Link>
             <button type="submit" className="btn btn-primary" disabled={saving}>
-              {saving ? '⏳ Creating…' : <><Icon name="plus" size={16} /> Create Category</>}
+              {saving ? '⏳ Saving…' : <><Icon name={isEditing ? 'check' : 'plus'} size={16} /> {isEditing ? 'Save Changes' : 'Create Category'}</>}
             </button>
           </div>
         </form>

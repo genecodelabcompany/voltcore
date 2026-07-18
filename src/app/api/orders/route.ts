@@ -8,6 +8,7 @@ export async function GET(request: NextRequest) {
     const { rows, total } = await getOrders({
       status: sp.get('status') ?? undefined,
       search: sp.get('q') ?? undefined,
+      email: sp.get('email') ?? undefined,
       limit: sp.get('limit') ? Number(sp.get('limit')) : 100,
       offset: sp.get('offset') ? Number(sp.get('offset')) : 0,
     });

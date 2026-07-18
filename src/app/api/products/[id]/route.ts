@@ -12,8 +12,8 @@ export async function GET(
     const product = {
       id: row.id,
       name: row.name,
-      cat: row.cat_id,
-      category: row.cat_name || '',
+      cat_id: row.cat_id,
+      cat_name: row.cat_name || '',
       price: row.price,
       was: row.was,
       sku: row.sku,
@@ -24,10 +24,10 @@ export async function GET(
       glyph: row.glyph,
       brand: row.brand,
       badge: row.badge,
-      desc: row.description,
+      description: row.description,
+      status: row.status,
       image_url: row.image_url,
       image_urls: row.image_urls ? JSON.parse(row.image_urls) : [],
-
     };
     return Response.json({ product });
   } catch (e) {
@@ -43,7 +43,23 @@ export async function PUT(
   try {
     const { id } = await params;
     const body = await request.json();
-    await updateProduct(id, body);
+    // Map frontend field names to DB column names
+    const dbData: Record<string, unknown> = {};
+    if (body.name !== undefined) dbData.name = body.name;
+    if (body.cat_id !== undefined) dbData.cat_id = body.cat_id;
+    if (body.price !== undefined) dbData.price = body.price;
+    if (body.was !== undefined) dbData.was = body.was;
+    if (body.sku !== undefined) dbData.sku = body.sku;
+    if (body.brand !== undefined) dbData.brand = body.brand;
+    if (body.badge !== undefined) dbData.badge = body.badge;
+    if (body.description !== undefined) dbData.description = body.description;
+    if (body.glyph !== undefined) dbData.glyph = body.glyph;
+    if (body.image_url !== undefined) dbData.image_url = body.image_url;
+    if (body.stock !== undefined) dbData.stock = body.stock;
+    if (body.status !== undefined) dbData.status = body.status;
+    if (body.image_urls !== undefined) dbData.image_urls = typeof body.image_urls === 'string' ? body.image_urls : JSON.stringify(body.image_urls);
+
+    await updateProduct(id, dbData);
     return Response.json({ success: true });
   } catch (e) {
     console.error('[PUT /api/products/[id]]', e);
