@@ -9,8 +9,10 @@ interface Category { id: string; name: string; icon: string; }
 interface Product {
   id: string; name: string; brand: string; price: number; was: number | null;
   rating: number; reviews: number; stock: number; glyph: string;
-  badge: string | null; cat_id: string; description: string; image_url: string | null;
+  badge: string | null; cat: string; description: string; image_url: string | null;
+  image_urls?: string[];
 }
+
 
 const PRICE_RANGES = [
   { label: 'All Prices',    min: 0,   max: Infinity },
@@ -51,7 +53,8 @@ function ShopContent() {
 
   const filtered = useMemo(() => {
     let r = products;
-    if (cat !== 'all') r = r.filter(p => p.cat_id === cat);
+    if (cat !== 'all') r = r.filter(p => p.cat === cat);
+
     if (search) r = r.filter(p =>
       p.name.toLowerCase().includes(search.toLowerCase()) ||
       p.description?.toLowerCase().includes(search.toLowerCase())

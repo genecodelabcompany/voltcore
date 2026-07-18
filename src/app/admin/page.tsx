@@ -1,5 +1,6 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+
 import Link from 'next/link';
 import { KpiCard } from '@/components/kpi-card';
 import { LineChart, Donut, Legend } from '@/components/charts';
@@ -43,21 +44,42 @@ const quickActions = [
 
 export default function AdminDashboard() {
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
+  const [realtime, setRealtime] = useState<any>(null);
   const [recentOrders, setRecentOrders] = useState<RecentOrder[]>([]);
   const [loading, setLoading] = useState(true);
+  const [lastUpdated, setLastUpdated] = useState<string>('');
+  const [liveDot, setLiveDot] = useState(true);
+
+  // Blinking live indicator
+  useEffect(() => {
+    const blink = setInterval(() => setLiveDot(d => !d), 1500);
+    return () => clearInterval(blink);
+  }, []);
+
+  const fetchData = useCallback(async () => {
+    try {
+      const [a, rt, o] = await Promise.all([
+        fetch('/api/analytics').then(r => r.json()),
+        fetch('/api/analytics/realtime').then(r => r.json()),
+        fetch('/api/orders?limit=5').then(r => r.json()),
+      ]);
+      setAnalytics(a);
+      setRealtime(rt);
+      setRecentOrders(o.orders ?? []);
+      setLastUpdated(new Date().toLocaleTimeString());
+      setLoading(false);
+    } catch {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    Promise.all([
-      fetch('/api/analytics').then(r => r.json()),
-      fetch('/api/orders?limit=5').then(r => r.json()),
-    ])
-      .then(([a, o]) => {
-        setAnalytics(a);
-        setRecentOrders(o.orders ?? []);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  }, []);
+    fetchData();
+    // Poll every 30 seconds for real-time updates
+    const interval = setInterval(fetchData, 30000);
+    return () => clearInterval(interval);
+  }, [fetchData]);
+
 
   if (loading || !analytics) {
     return (
@@ -117,12 +139,54 @@ export default function AdminDashboard() {
       <div className="row between" style={{ flexWrap: 'wrap', gap: 16 }}>
         <div>
           <h1 className="h1">Welcome back, Admin!</h1>
-          <div className="sub" style={{ marginTop: 6, fontSize: 15 }}>Here&apos;s what&apos;s happening with your store today.</div>
+          <div className="sub" style={{ marginTop: 6, fontSize: 15 }}>Here's what's happening with your store today.</div>
         </div>
-        <div className="card row gap8" style={{ padding: '10px 16px', fontWeight: 600, fontSize: 14 }}>
-          <Icon name="cal" size={18} color="var(--muted)" /> Real-Time Analytics
+        <div className="row gap12" style={{ alignItems: 'center' }}>
+          <div className="card row gap8" style={{ padding: '10px 16px', fontWeight: 600, fontSize: 14 }}>
+            <span style={{
+              width: 10, height: 10, borderRadius: '50%',
+              background: liveDot ? 'var(--c-green)' : 'var(--c-green)',
+              opacity: liveDot ? 1 : 0.3,
+              transition: 'opacity 0.3s',
+            }} />
+            Live
+          </div>
+          {lastUpdated && (
+            <span className="sub" style={{ fontSize: 12 }}>Updated {lastUpdated}</span>
+          )}
         </div>
       </div>
+
+      {/* Live Today's Stats */}
+      {realtime && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16 }}>
+          <div className="card card-pad" style={{ background: 'linear-gradient(135deg, #1e3a5f 0%, #2d5a8e 100%)', color: '#fff' }}>
+            <div className="sub" style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)' }}>Today's Revenue</div>
+            <div style={{ fontSize: 28, fontWeight: 900, marginTop: 4 }}>{money(realtime.today.revenue)}</div>
+            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', marginTop: 4 }}>
+              {realtime.today.orders} order{realtime.today.orders !== 1 ? 's' : ''} today
+            </div>
+          </div>
+          <div className="card card-pad" style={{ background: 'linear-gradient(135deg, #065F46 0%, #059669 100%)', color: '#fff' }}>
+            <div className="sub" style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)' }}>Today's Orders</div>
+            <div style={{ fontSize: 28, fontWeight: 900, marginTop: 4 }}>{realtime.today.orders}</div>
+            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', marginTop: 4 }}>
+              {realtime.pending_orders} pending
+            </div>
+          </div>
+          <div className="card card-pad" style={{ background: 'linear-gradient(135deg, #6D28D9 0%, #8B5CF6 100%)', color: '#fff' }}>
+            <div className="sub" style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)' }}>New Customers Today</div>
+            <div style={{ fontSize: 28, fontWeight: 900, marginTop: 4 }}>{realtime.today.new_customers}</div>
+            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', marginTop: 4 }}>unique buyers</div>
+          </div>
+          <div className="card card-pad" style={{ background: 'linear-gradient(135deg, #B45309 0%, #F59E0B 100%)', color: '#fff' }}>
+            <div className="sub" style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)' }}>Pending Orders</div>
+            <div style={{ fontSize: 28, fontWeight: 900, marginTop: 4 }}>{realtime.pending_orders}</div>
+            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', marginTop: 4 }}>need attention</div>
+          </div>
+        </div>
+      )}
+
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: 16 }}>
         {kpis.map((k, i) => (

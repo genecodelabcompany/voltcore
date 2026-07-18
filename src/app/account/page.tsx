@@ -1,5 +1,6 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+
 import Link from 'next/link';
 import { KpiCard } from '@/components/kpi-card';
 import { Pill } from '@/components/pill';
@@ -29,17 +30,29 @@ export default function CustomerDashboard() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [courseCount, setCourseCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [lastUpdated, setLastUpdated] = useState('');
 
-  useEffect(() => {
-    Promise.all([
-      fetch('/api/orders?limit=4').then(r => r.json()),
-      fetch('/api/courses').then(r => r.json()),
-    ]).then(([ordersData, coursesData]) => {
+  const fetchData = useCallback(async () => {
+    try {
+      const [ordersData, coursesData] = await Promise.all([
+        fetch('/api/orders?limit=4').then(r => r.json()),
+        fetch('/api/courses').then(r => r.json()),
+      ]);
       setOrders(ordersData.orders ?? []);
       setCourseCount((coursesData.courses ?? []).length);
+      setLastUpdated(new Date().toLocaleTimeString());
       setLoading(false);
-    }).catch(() => setLoading(false));
+    } catch {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchData();
+    const interval = setInterval(fetchData, 30000);
+    return () => clearInterval(interval);
+  }, [fetchData]);
+
 
   return (
     <div>

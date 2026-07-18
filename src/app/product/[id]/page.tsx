@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, use } from 'react';
+import { useState, useEffect, use, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { StoreShell } from '@/components/shells/store-shell';
 import { ProductThumb } from '@/components/product-thumb';
@@ -20,6 +20,19 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
   const [qty, setQty] = useState(1);
   const [tab, setTab] = useState('Description');
   const [activeImage, setActiveImage] = useState(0);
+  const carouselRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    if (!product) return;
+    const images = product.image_urls?.length ? product.image_urls : (product.image_url ? [product.image_url] : []);
+    if (images.length <= 1) return;
+    carouselRef.current = setInterval(() => {
+      setActiveImage(prev => (prev + 1) % images.length);
+    }, 3500);
+    return () => {
+      if (carouselRef.current) clearInterval(carouselRef.current);
+    };
+  }, [product]);
 
   useEffect(() => {
     fetch(`/api/products/${id}`)
@@ -33,7 +46,7 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
 
   useEffect(() => {
     if (product) {
-      fetch(`/api/products?cat=${product.category}&limit=5`)
+      fetch(`/api/products?cat=${product.cat}&limit=5`)
         .then(r => r.json())
         .then(data => {
           setRelated((data.products ?? []).filter((p: Product) => p.id !== product.id).slice(0, 4));
@@ -104,19 +117,20 @@ export default function ProductDetail({ params }: { params: Promise<{ id: string
               const images = product.image_urls?.length ? product.image_urls : (product.image_url ? [product.image_url] : []);
               if (images.length <= 1) return null;
               return (
-                <div className="prod-thumb-grid" style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(images.length, 4)},1fr)`, gap: 8 }}>
-                  {images.slice(0, 4).map((url, i) => (
+                <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4, scrollSnapType: 'x mandatory', scrollbarWidth: 'thin' }}>
+                  {images.map((url, i) => (
                     <div key={i} className="card" onClick={() => setActiveImage(i)} style={{
-                      padding: 12, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      flex: '0 0 80px', height: 80, padding: 6, display: 'flex', alignItems: 'center', justifyContent: 'center',
                       cursor: 'pointer', border: activeImage === i ? '2px solid var(--blue-600)' : '2px solid transparent',
-                      overflow: 'hidden',
+                      overflow: 'hidden', scrollSnapAlign: 'start',
                     }}>
-                      <img src={url} alt={`${product.name} ${i + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <img src={url} alt={`${product.name} ${i + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 4 }} />
                     </div>
                   ))}
                 </div>
               );
             })()}
+
           </div>
 
           {/* Info */}

@@ -1,5 +1,6 @@
 'use client';
 import { useRouter } from 'next/navigation';
+import { useState, useEffect, useRef } from 'react';
 import { ProductThumb } from './product-thumb';
 import { StarRow } from './star-row';
 import { Icon } from './icon';
@@ -22,6 +23,19 @@ export function ProductCard({ product: p }: ProductCardProps) {
   const { addToCart, toggleWish, wishlist } = useStore();
   const { isSignedIn } = useAuth();
   const wished = wishlist.includes(p.id);
+  const [activeIdx, setActiveIdx] = useState(0);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const images = p.image_urls?.length ? p.image_urls : (p.image_url ? [p.image_url] : []);
+
+  useEffect(() => {
+    if (images.length <= 1) return;
+    intervalRef.current = setInterval(() => {
+      setActiveIdx(prev => (prev + 1) % images.length);
+    }, 3000);
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [images.length]);
 
   const handleOrderNow = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -38,13 +52,42 @@ export function ProductCard({ product: p }: ProductCardProps) {
       onMouseLeave={e => { (e.currentTarget as HTMLElement).style.boxShadow = 'var(--shadow)'; (e.currentTarget as HTMLElement).style.transform = 'none'; }}
     >
       <div style={{ position: 'relative' }}>
-        <div onClick={() => router.push('/product/' + p.id)} style={{ display: 'block', height: 180, overflow: 'hidden' }}>
-          {p.image_url ? (
-            <img src={p.image_url} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-          ) : (
-            <ProductThumb glyph={p.glyph} fill radius={0} tag={p.name} />
-          )}
+        <div onClick={() => router.push('/product/' + p.id)} style={{ display: 'block', height: 180, overflow: 'hidden', position: 'relative' }}>
+          {(() => {
+            if (images.length > 1) {
+              return (
+                <div style={{ display: 'flex', overflow: 'hidden', height: '100%', position: 'relative' }}>
+                  {images.map((url, i) => (
+                    <img key={i} src={url} alt={`${p.name} ${i + 1}`} style={{
+                      minWidth: '100%', height: '100%', objectFit: 'cover',
+                      transition: 'opacity 0.5s ease',
+                      opacity: i === activeIdx ? 1 : 0,
+                      position: i === activeIdx ? 'relative' : 'absolute',
+                      top: 0, left: 0,
+                    }} />
+                  ))}
+                  {/* Dots indicator */}
+                  <div style={{ position: 'absolute', bottom: 8, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 4, zIndex: 2 }}>
+                    {images.map((_, i) => (
+                      <div key={i} style={{
+                        width: 6, height: 6, borderRadius: '50%',
+                        background: i === activeIdx ? '#fff' : 'rgba(255,255,255,0.5)',
+                        transition: 'background 0.3s',
+                      }} />
+                    ))}
+                  </div>
+                </div>
+              );
+            }
+            return images[0] ? (
+              <img src={images[0]} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            ) : (
+              <ProductThumb glyph={p.glyph} fill radius={0} tag={p.name} />
+            );
+          })()}
+
         </div>
+
         {p.badge && (
           <span className={`pill ${badgeColor[p.badge] || 'pill-slate'}`} style={{ position: 'absolute', top: 12, left: 12 }}>
             {p.badge}

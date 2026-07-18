@@ -1,5 +1,6 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+
 import { KpiCard } from '@/components/kpi-card';
 import { LineChart, Donut, Legend } from '@/components/charts';
 import { CardHead } from '@/components/card-head';
@@ -20,10 +21,35 @@ interface Analytics {
 
 export default function AdminAnalytics() {
   const [data, setData] = useState<Analytics | null>(null);
+  const [realtime, setRealtime] = useState<any>(null);
+  const [lastUpdated, setLastUpdated] = useState('');
+  const [liveDot, setLiveDot] = useState(true);
+  const [timeRange, setTimeRange] = useState('Daily');
+
+  // Blinking live indicator
+  useEffect(() => {
+    const blink = setInterval(() => setLiveDot(d => !d), 1500);
+    return () => clearInterval(blink);
+  }, []);
+
+  const fetchData = useCallback(async () => {
+    try {
+      const [a, rt] = await Promise.all([
+        fetch('/api/analytics').then(r => r.json()),
+        fetch('/api/analytics/realtime').then(r => r.json()),
+      ]);
+      setData(a);
+      setRealtime(rt);
+      setLastUpdated(new Date().toLocaleTimeString());
+    } catch {}
+  }, []);
 
   useEffect(() => {
-    fetch('/api/analytics').then(r => r.json()).then(setData);
-  }, []);
+    fetchData();
+    const interval = setInterval(fetchData, 30000);
+    return () => clearInterval(interval);
+  }, [fetchData]);
+
 
   if (!data) {
     return (
@@ -53,26 +79,96 @@ export default function AdminAnalytics() {
     { name: 'Tools',       pct:  7, val: money(data.orders.revenue * 0.07), color: 'var(--c-teal)' },
   ];
 
+  // Build chart data from realtime API
+  const chartData = useMemo(() => {
+    if (!realtime) return { data: [0,0,0,0,0,0,0], labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'] };
+    if (timeRange === 'Daily') {
+      const days = realtime.daily || [];
+      const labels = days.map((d: any) => {
+        const date = new Date(d.day + 'T00:00:00');
+        return date.toLocaleDateString('en', { weekday: 'short' });
+      });
+      return { data: days.map((d: any) => d.revenue), labels };
+    }
+    if (timeRange === 'Weekly') {
+      const weeks = realtime.weekly || [];
+      return { data: weeks.map((w: any) => w.revenue), labels: weeks.map((w: any) => w.week.slice(-2)) };
+    }
+    const months = realtime.monthly || [];
+    return { data: months.map((m: any) => m.revenue), labels: months.map((m: any) => m.month.slice(-2)) };
+  }, [realtime, timeRange]);
+
+  // Build hourly chart for today
+  const hourlyData = useMemo(() => {
+    if (!realtime?.hourly?.length) return { data: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], labels: Array.from({length:24},(_,i)=>String(i).padStart(2,'0')) };
+    const hours = realtime.hourly;
+    const full = Array.from({length:24}, (_, i) => {
+      const h = String(i).padStart(2, '0');
+      const found = hours.find((x: any) => x.hour === h);
+      return found ? found.revenue : 0;
+    });
+    return { data: full, labels: Array.from({length:24},(_,i)=>String(i).padStart(2,'0')) };
+  }, [realtime]);
+
   return (
     <div>
       <PageHead title="Reports & Analytics" sub="Revenue, orders and customer growth insights"
         actions={<>
+          <div className="row gap12" style={{ alignItems: 'center' }}>
+            <span style={{
+              width: 8, height: 8, borderRadius: '50%',
+              background: 'var(--c-green)', opacity: liveDot ? 1 : 0.3,
+              transition: 'opacity 0.3s',
+            }} />
+            {lastUpdated && <span className="sub" style={{ fontSize: 12 }}>Live · {lastUpdated}</span>}
+          </div>
           <VcSelect value="All Time" options={['All Time', 'Last 30 Days', 'This Quarter', 'This Year']} />
           <button className="btn btn-primary"><Icon name="download" size={16} />Export Report</button>
         </>} />
 
+      {/* Live Today's Stats */}
+      {realtime && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16, marginBottom: 20 }}>
+          <div className="card card-pad" style={{ background: 'linear-gradient(135deg, #1e3a5f 0%, #2d5a8e 100%)', color: '#fff' }}>
+            <div className="sub" style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)' }}>Today's Revenue</div>
+            <div style={{ fontSize: 28, fontWeight: 900, marginTop: 4 }}>{money(realtime.today.revenue)}</div>
+            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', marginTop: 4 }}>
+              {realtime.today.orders} order{realtime.today.orders !== 1 ? 's' : ''} today
+            </div>
+          </div>
+          <div className="card card-pad" style={{ background: 'linear-gradient(135deg, #065F46 0%, #059669 100%)', color: '#fff' }}>
+            <div className="sub" style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)' }}>Today's Orders</div>
+            <div style={{ fontSize: 28, fontWeight: 900, marginTop: 4 }}>{realtime.today.orders}</div>
+            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', marginTop: 4 }}>
+              {realtime.pending_orders} pending
+            </div>
+          </div>
+          <div className="card card-pad" style={{ background: 'linear-gradient(135deg, #6D28D9 0%, #8B5CF6 100%)', color: '#fff' }}>
+            <div className="sub" style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)' }}>New Customers Today</div>
+            <div style={{ fontSize: 28, fontWeight: 900, marginTop: 4 }}>{realtime.today.new_customers}</div>
+            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', marginTop: 4 }}>unique buyers</div>
+          </div>
+          <div className="card card-pad" style={{ background: 'linear-gradient(135deg, #B45309 0%, #F59E0B 100%)', color: '#fff' }}>
+            <div className="sub" style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)' }}>Pending Orders</div>
+            <div style={{ fontSize: 28, fontWeight: 900, marginTop: 4 }}>{realtime.pending_orders}</div>
+            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', marginTop: 4 }}>need attention</div>
+          </div>
+        </div>
+      )}
+
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16, marginBottom: 20 }}>
-        <KpiCard icon="card"  iconBg="var(--blue-50)" iconColor="var(--blue-600)" label="Revenue"         value={money(data.orders.revenue)}             spark={[0,0,0,0,0,0,0]} sparkColor="var(--c-blue)" />
-        <KpiCard icon="cart"  iconBg="#ECFDF3"        iconColor="var(--c-green)"  label="Orders"          value={String(data.orders.total)}              spark={[0,0,0,0,0,0,0]} sparkColor="var(--c-green)" />
+        <KpiCard icon="card"  iconBg="var(--blue-50)" iconColor="var(--blue-600)" label="Revenue"         value={money(data.orders.revenue)}             spark={realtime?.daily?.slice(-7).map((d:any)=>d.revenue) || [0,0,0,0,0,0,0]} sparkColor="var(--c-blue)" />
+        <KpiCard icon="cart"  iconBg="#ECFDF3"        iconColor="var(--c-green)"  label="Orders"          value={String(data.orders.total)}              spark={realtime?.daily?.slice(-7).map((d:any)=>d.orders) || [0,0,0,0,0,0,0]} sparkColor="var(--c-green)" />
         <KpiCard icon="users" iconBg="#F5F3FF"        iconColor="var(--c-purple)" label="Customers"       value={String(data.customer_count)}            spark={[0,0,0,0,0,0,0]} sparkColor="var(--c-purple)" />
         <KpiCard icon="trend" iconBg="#FFF7ED"        iconColor="var(--c-orange)" label="Avg Order Value" value={money(data.orders.avg_order)}           spark={[0,0,0,0,0,0,0]} sparkColor="var(--c-orange)" />
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1.6fr 1fr', gap: 16, marginBottom: 16 }}>
         <div className="card card-pad">
-          <CardHead title="Revenue Trend" right={<VcSelect value="Daily" options={['Daily', 'Weekly', 'Monthly']} />} />
-          <LineChart data={[0, 0, 0, 0, 0, 0, 0]} labels={['Mon','Tue','Wed','Thu','Fri','Sat','Sun']} color="var(--c-blue)" />
+          <CardHead title="Revenue Trend" right={<VcSelect value={timeRange} options={['Daily', 'Weekly', 'Monthly']} onChange={(v:string)=>setTimeRange(v)} />} />
+          <LineChart data={chartData.data} labels={chartData.labels} color="var(--c-blue)" />
         </div>
+
         <div className="card card-pad">
           <CardHead title="Top Products by Revenue" />
           {data.top_products.length === 0 ? (
