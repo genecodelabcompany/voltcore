@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { StoreShell } from '@/components/shells/store-shell';
 import { StarRow } from '@/components/star-row';
@@ -15,7 +15,8 @@ interface Course {
 
 const EMOJIS = ['🔌', '⚡', '📡', '🤖', '🔧', '💾'];
 
-export default function CourseDetail({ params }: { params: { id: string } }) {
+export default function CourseDetail({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
   const [course, setCourse] = useState<Course | null>(null);
   const [loading, setLoading] = useState(true);
   const [enrolling, setEnrolling] = useState(false);
@@ -28,12 +29,12 @@ export default function CourseDetail({ params }: { params: { id: string } }) {
     fetch('/api/courses')
       .then(r => r.json())
       .then(data => {
-        const c = (data.courses ?? []).find((x: Course) => x.id === params.id);
+        const c = (data.courses ?? []).find((x: Course) => x.id === id);
         setCourse(c ?? null);
         setLoading(false);
       })
       .catch(() => setLoading(false));
-  }, [params.id]);
+  }, [id]);
 
   const handleEnrol = async () => {
     if (!isSignedIn) { router.push('/sign-in'); return; }
@@ -43,7 +44,7 @@ export default function CourseDetail({ params }: { params: { id: string } }) {
       const res = await fetch('/api/enrollments', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ course_id: params.id }),
+        body: JSON.stringify({ course_id: id }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Enrolment failed');

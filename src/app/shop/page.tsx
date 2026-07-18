@@ -1,5 +1,6 @@
 'use client';
 import { useState, useMemo, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { StoreShell } from '@/components/shells/store-shell';
 import { ProductCard } from '@/components/product-card';
 import { Icon } from '@/components/icon';
@@ -21,10 +22,11 @@ const PRICE_RANGES = [
 const SORT_OPTIONS = ['Relevance', 'Price: Low to High', 'Price: High to Low', 'Top Rated', 'Newest'];
 
 export default function ShopPage() {
+  const searchParams = useSearchParams();
   const [cat, setCat]           = useState('all');
   const [priceIdx, setPriceIdx] = useState(0);
   const [sort, setSort]         = useState('Relevance');
-  const [search, setSearch]     = useState('');
+  const [search, setSearch]     = useState(searchParams.get('q') ?? '');
   const [inStock, setInStock]   = useState(false);
   const [showFilters, setShowFilters] = useState(false);
 

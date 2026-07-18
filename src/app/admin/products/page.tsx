@@ -72,6 +72,7 @@ export default function AdminProducts() {
       <PageHead title="Products" sub={`${total} products across ${categories.length} categories`}
         actions={<>
           <button className="btn btn-ghost"><Icon name="download" size={16} />Export</button>
+          <Link href="/admin/products/bulk" className="btn btn-ghost"><Icon name="upload" size={16} />Bulk Upload</Link>
           <Link href="/admin/products/new" className="btn btn-primary"><Icon name="plus" size={16} />Add Product</Link>
         </>} />
 

@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { StoreShell } from '@/components/shells/store-shell';
 import { ProductThumb } from '@/components/product-thumb';
@@ -10,7 +10,8 @@ import { useStore } from '@/context/store-context';
 import { money } from '@/lib/utils';
 import type { Product } from '@/lib/types';
 
-export default function ProductDetail({ params }: { params: { id: string } }) {
+export default function ProductDetail({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
   const [product, setProduct] = useState<Product | null>(null);
   const [related, setRelated] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -20,14 +21,14 @@ export default function ProductDetail({ params }: { params: { id: string } }) {
   const [tab, setTab] = useState('Description');
 
   useEffect(() => {
-    fetch(`/api/products/${params.id}`)
+    fetch(`/api/products/${id}`)
       .then(r => r.json())
       .then(data => {
         setProduct(data.product ?? null);
         setLoading(false);
       })
       .catch(() => setLoading(false));
-  }, [params.id]);
+  }, [id]);
 
   useEffect(() => {
     if (product) {
