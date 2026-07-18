@@ -1,5 +1,5 @@
 'use client';
-import { useState, useMemo, useEffect } from 'react';
+import { Suspense, useState, useMemo, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { StoreShell } from '@/components/shells/store-shell';
 import { ProductCard } from '@/components/product-card';
@@ -21,7 +21,7 @@ const PRICE_RANGES = [
 ];
 const SORT_OPTIONS = ['Relevance', 'Price: Low to High', 'Price: High to Low', 'Top Rated', 'Newest'];
 
-export default function ShopPage() {
+function ShopContent() {
   const searchParams = useSearchParams();
   const [cat, setCat]           = useState('all');
   const [priceIdx, setPriceIdx] = useState(0);
@@ -208,5 +208,19 @@ export default function ShopPage() {
         </div>
       </div>
     </StoreShell>
+  );
+}
+
+export default function ShopPage() {
+  return (
+    <Suspense fallback={
+      <StoreShell noFooter>
+        <div style={{ background: 'var(--bg)', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div className="sub">Loading shop…</div>
+        </div>
+      </StoreShell>
+    }>
+      <ShopContent />
+    </Suspense>
   );
 }
